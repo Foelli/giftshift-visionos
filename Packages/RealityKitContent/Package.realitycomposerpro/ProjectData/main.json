@@ -1,5 +1,11 @@
 {
   "pathsToIds" : {
+    "RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/Ground\/Ground.usda" : "17547A9D-2AE9-402E-B9CD-4890F63DBDBA",
     "RealityKitContent\/Sources\/RealityKitContent\/RealityKitContent.rkassets\/Immersive.usda" : "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD"
+  },
+  "projectID" : 2687702421021146297,
+  "uuidToIntID" : {
+    "17547A9D-2AE9-402E-B9CD-4890F63DBDBA" : 7950672553974607113,
+    "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD" : -7561353659955530815
   }
 }
