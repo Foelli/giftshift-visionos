@@ -39,7 +39,7 @@ def Xform "Root"
         )
         quatf xformOp:orient = (1, 0, 0, 0)
         float3 xformOp:scale = (0.005, 0.005, 0.005)
-        double3 xformOp:translate = (0, 1.25, -1)
+        double3 xformOp:translate = (0, 0.30000001192092896, -1)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def Mesh "Cylinder" (
@@ -165,6 +165,42 @@ def Xform "Root"
             double3 xformOp:translate = (-118.8418, 68.8773, -81.10445)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
         }
+
+        def RealityKitComponent "Collider"
+        {
+            uint group = 1
+            uniform token info:id = "RealityKit.Collider"
+            uint mask = 4294967295
+            token type = "Default"
+
+            def RealityKitStruct "Shape"
+            {
+                float3 extent = (280, 138.53159, 200.00008)
+                token shapeType = "Box"
+
+                def RealityKitStruct "pose"
+                {
+                    float3 position = (-1.0233307, 6.5957985, -0.49320984)
+                }
+            }
+        }
+
+        def RealityKitComponent "RigidBody"
+        {
+            uniform token info:id = "RealityKit.RigidBody"
+            token motionType = "Static"
+
+            def RealityKitStruct "massFrame"
+            {
+                def RealityKitStruct "m_pose"
+                {
+                }
+            }
+
+            def RealityKitStruct "material"
+            {
+            }
+        }
     }
 
     def "Ground" (
@@ -178,7 +214,43 @@ def Xform "Root"
         )
         quatf xformOp:orient = (1, 0, 0, 0)
         float3 xformOp:scale = (5, 5, 5)
-        float3 xformOp:translate = (0, 0.90000004, -3)
+        float3 xformOp:translate = (0, 0.01, -3)
+
+        def RealityKitComponent "Collider"
+        {
+            uint group = 1
+            uniform token info:id = "RealityKit.Collider"
+            uint mask = 4294967295
+            token type = "Default"
+
+            def RealityKitStruct "Shape"
+            {
+                float3 extent = (5, 0, 5)
+                token shapeType = "Box"
+
+                def RealityKitStruct "pose"
+                {
+                    float3 position = (0, 0, 0.5)
+                }
+            }
+        }
+
+        def RealityKitComponent "RigidBody"
+        {
+            uniform token info:id = "RealityKit.RigidBody"
+            token motionType = "Static"
+
+            def RealityKitStruct "massFrame"
+            {
+                def RealityKitStruct "m_pose"
+                {
+                }
+            }
+
+            def RealityKitStruct "material"
+            {
+            }
+        }
     }
 
     def "Natural_Cork" (
