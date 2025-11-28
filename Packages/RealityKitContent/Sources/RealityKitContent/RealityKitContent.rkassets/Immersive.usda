@@ -26,20 +26,6 @@ def Xform "Root"
     {
     }
 
-    def "Ground" (
-        prepend apiSchemas = ["MaterialBindingAPI"]
-        references = @Ground/Ground.usda@
-    )
-    {
-        reorder nameChildren = ["Table", "UsdPreviewSurface", "add", "Swizzle_1", "Swizzle", "Multiply_1", "Mix", "Dot", "Metallic", "PreviewSurface", "Normal", "BaseColor", "Roughness", "multiply", "Mesh", "Material"]
-        rel material:binding = </Root/Ground/Material> (
-            bindMaterialAs = "strongerThanDescendants"
-        )
-        quatf xformOp:orient = (1, 0, 0, 0)
-        float3 xformOp:scale = (1, 1, 1)
-        float3 xformOp:translate = (0, 0.90000004, -3)
-    }
-
     def Xform "Table" (
         prepend apiSchemas = ["MaterialBindingAPI"]
         customData = {
@@ -178,6 +164,184 @@ def Xform "Root"
             double3 xformOp:scale = (4.4, 4.300001, 2)
             double3 xformOp:translate = (-118.8418, 68.8773, -81.10445)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+        }
+    }
+
+    def "Ground" (
+        prepend apiSchemas = ["MaterialBindingAPI"]
+        references = @Ground/Ground.usda@
+    )
+    {
+        reorder nameChildren = ["Table", "UsdPreviewSurface", "add", "Swizzle_1", "Swizzle", "Multiply_1", "Mix", "Dot", "Metallic", "PreviewSurface", "Normal", "BaseColor", "Roughness", "multiply", "Mesh", "Material"]
+        rel material:binding = </Root/Natural_Cork> (
+            bindMaterialAs = "strongerThanDescendants"
+        )
+        quatf xformOp:orient = (1, 0, 0, 0)
+        float3 xformOp:scale = (5, 5, 5)
+        float3 xformOp:translate = (0, 0.90000004, -3)
+    }
+
+    def "Natural_Cork" (
+        active = true
+        prepend references = @NaturalCork.usdz@
+    )
+    {
+        color3f inputs:Basecolor_Tint (
+            customData = {
+                dictionary realitykit = {
+                    float2 positionInSubgraph = (-56.812614, 67.17455)
+                    float2 sizeInSubgraph = (160.5, 53)
+                    int stackingOrderInSubgraph = 2344
+                }
+            }
+        )
+        quatf xformOp:orient = (1, 0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "BaseColor"
+        {
+            asset inputs:file = @snow_02_2k/textures/snow_02_diff_2k.jpg@
+            int ui:nodegraph:node:stackingOrder = 2340
+        }
+
+        over "Metallic" (
+            active = false
+        )
+        {
+            int ui:nodegraph:node:stackingOrder = 2342
+        }
+
+        over "PreviewSurface"
+        {
+            color3f inputs:diffuseColor
+            float inputs:metallic
+        }
+
+        over "Normal"
+        {
+            asset inputs:file = @snow_02_2k/textures/snow_02_nor_gl_2k.exr@
+            int ui:nodegraph:node:stackingOrder = 2341
+        }
+
+        over "Roughness"
+        {
+            float2 ui:nodegraph:node:pos = (-270.9105, 466.6978)
+            int ui:nodegraph:node:stackingOrder = 2343
+        }
+
+        over "Swizzle_1" (
+            active = false
+        )
+        {
+            int ui:nodegraph:node:stackingOrder = 2362
+        }
+
+        over "Multiply_1" (
+            active = false
+        )
+        {
+            color3f inputs:in2
+            int ui:nodegraph:node:stackingOrder = 2345
+        }
+
+        over "Mix" (
+            active = false
+        )
+        {
+            color3f inputs:bg
+            color3f inputs:fg
+            float inputs:mix
+            int ui:nodegraph:node:stackingOrder = 2344
+        }
+
+        over "Swizzle" (
+            active = false
+        )
+        {
+            int ui:nodegraph:node:stackingOrder = 2344
+        }
+    }
+
+    def Material "Material"
+    {
+        prepend token outputs:mtlx:surface.connect = </Root/Material/PreviewSurface.outputs:out>
+        token outputs:realitykit:vertex
+        float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (335.25, 100.5)
+
+        def Shader "PreviewSurface"
+        {
+            uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+            float inputs:clearcoat
+            float inputs:clearcoatRoughness
+            color3f inputs:diffuseColor.connect = </Root/Material/Image.outputs:out>
+            color3f inputs:emissiveColor
+            float inputs:metallic
+            float3 inputs:normal.connect = </Root/Material/Image_2.outputs:out>
+            float inputs:opacity.connect = </Root/Material/Image_3.outputs:out>
+            float inputs:roughness.connect = </Root/Material/Image_1.outputs:out>
+            token outputs:out
+            float2 ui:nodegraph:node:pos = (93.5, 100.5)
+            int ui:nodegraph:node:stackingOrder = 8
+            string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["Advanced"]
+        }
+
+        def Shader "Image"
+        {
+            uniform token info:id = "ND_image_color3"
+            asset inputs:file = @snow_02_2k/textures/snow_02_diff_2k.jpg@
+            color3f outputs:out
+            float2 ui:nodegraph:node:pos = (-410.4503, -47.034637)
+            int ui:nodegraph:node:stackingOrder = 4
+        }
+
+        def Shader "Image_1"
+        {
+            uniform token info:id = "ND_image_float"
+            asset inputs:file = @snow_02_2k/textures/snow_02_rough_2k.jpg@
+            float outputs:out
+            float2 ui:nodegraph:node:pos = (-583.90607, 302.68466)
+            int ui:nodegraph:node:stackingOrder = 10
+        }
+
+        def Shader "Image_2"
+        {
+            uniform token info:id = "ND_image_vector3"
+            asset inputs:file = @snow_02_2k/textures/snow_02_nor_gl_2k.exr@
+            float3 outputs:out
+            float2 ui:nodegraph:node:pos = (-330.29095, 308.11264)
+            int ui:nodegraph:node:stackingOrder = 14
+        }
+
+        def Shader "Image_3"
+        {
+            uniform token info:id = "ND_image_float"
+            asset inputs:file = @snow_02_2k/textures/snow_02_translucent_2k.png@
+            float outputs:out
+            float2 ui:nodegraph:node:pos = (-96.135605, 318.48965)
+            int ui:nodegraph:node:stackingOrder = 16
+        }
+    }
+
+    def Xform "DirectionalLight" (
+        customData = {
+            float3 rotationEulerHint = (-2.1073422e-8, 0.78539807, 0.7853982)
+        }
+    )
+    {
+        quatf xformOp:orient = (0.8535534, -0.14644659, 0.35355332, 0.35355338)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def RealityKitComponent "DirectionalLight"
+        {
+            token info:id = "RealityKit.DirectionalLight"
+            float intensity = 5000
+
+            def RealityKitStruct "Shadow"
+            {
+                bool isEnabled = 0
+            }
         }
     }
 }
