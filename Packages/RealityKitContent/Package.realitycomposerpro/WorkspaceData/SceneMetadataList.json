@@ -16,7 +16,7 @@
       [
         "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
         "Root",
-        "Table"
+        "Tree_1"
       ],
       {
         "isExpanded" : true,
@@ -25,11 +25,21 @@
       [
         "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
         "Root",
-        "Natural_Cork"
+        "Tree"
       ],
       {
         "isExpanded" : true,
         "isLocked" : false
+      },
+      [
+        "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
+        "Root",
+        "SkyDome"
+      ],
+      {
+        "disallowsFraming" : true,
+        "isExpanded" : false,
+        "isLocked" : true
       },
       [
         "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
@@ -39,6 +49,15 @@
         "disallowsFraming" : false,
         "isExpanded" : true,
         "isLocked" : false
+      },
+      [
+        "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
+        "Root",
+        "Ground"
+      ],
+      {
+        "isExpanded" : false,
+        "isLocked" : true
       },
       [
         "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
@@ -53,7 +72,7 @@
       [
         "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
         "Root",
-        "Ground"
+        "Tree_2"
       ],
       {
         "isExpanded" : true,
@@ -62,17 +81,7 @@
       [
         "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
         "Root",
-        "SkyDome"
-      ],
-      {
-        "disallowsFraming" : true,
-        "isExpanded" : true,
-        "isLocked" : false
-      },
-      [
-        "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
-        "Root",
-        "Material"
+        "Table"
       ],
       {
         "isExpanded" : true,
@@ -81,8 +90,16 @@
       [
         "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
         "Root",
-        "SkyDome",
-        "mtl"
+        "Snow_Ground"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "C6A7F375-BFE9-46E0-9EA6-1A6B150F43FD",
+        "Root",
+        "Tree_3"
       ],
       {
         "isExpanded" : true,
