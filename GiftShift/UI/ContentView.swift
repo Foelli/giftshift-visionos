@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var spawnTimer: Timer?
 
     var body: some View {
+        ToggleImmersiveSpaceButton()
         TimelineView(.animation) { _ in
             RealityView { content in
                 
