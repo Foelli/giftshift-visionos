@@ -9,6 +9,7 @@ import RealityKitContent
 
 struct ImmersiveView: View {
     @Environment(AppModel.self) var appModel
+    @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 
     @State private var root = Entity()
     @State private var immersiveRoot: Entity? = nil
@@ -86,9 +87,7 @@ struct ImmersiveView: View {
         }
     }
 
-    // ---------------------------------------------------------
     // MARK: - Cube Spawner
-    // ---------------------------------------------------------
     func startCubeSpawner() {
         guard spawnTimer == nil else { return }
 
@@ -112,9 +111,7 @@ struct ImmersiveView: View {
         print("Spawner stopped.")
     }
 
-    // ---------------------------------------------------------
     // MARK: - Despawn after 15s
-    // ---------------------------------------------------------
     func scheduleDespawn(for cube: ModelEntity) {
         Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
             cube.removeFromParent()
@@ -123,9 +120,7 @@ struct ImmersiveView: View {
         }
     }
 
-    // ---------------------------------------------------------
-    // MARK: - Cube Factory (random über dem Tisch, von oben fallend)
-    // ---------------------------------------------------------
+    // MARK: - Cube Factory
     func makePhysicalCube(above table: Entity) -> ModelEntity {
         let size: Float = 0.4
 
@@ -175,9 +170,7 @@ struct ImmersiveView: View {
         return cube
     }
 
-    // ---------------------------------------------------------
     // MARK: - 3D Stop Button
-    // ---------------------------------------------------------
     func makeStopButton() -> ModelEntity {
         let mesh = MeshResource.generateBox(size: 0.15)
         let material = SimpleMaterial(color: .red, isMetallic: false)
@@ -201,16 +194,12 @@ struct ImmersiveView: View {
         return button
     }
 
-    // ---------------------------------------------------------
     // MARK: - Colors
-    // ---------------------------------------------------------
     func randomCubeColor() -> UIColor {
         [.red, .orange, .green].randomElement()!
     }
 
-    // ---------------------------------------------------------
     // MARK: - Ground Plane
-    // ---------------------------------------------------------
     func makeGround() -> ModelEntity {
         let mesh = MeshResource.generatePlane(width: 4, depth: 4)
         let material = SimpleMaterial(color: .gray, isMetallic: false)
