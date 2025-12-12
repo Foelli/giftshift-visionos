@@ -15,7 +15,7 @@ struct ImmersiveView: View {
 
     @State private var ground: ModelEntity? = nil
     @State private var table: Entity? = nil
-    @State private var stopButton: ModelEntity? = nil   // 3D Button in the air
+    @State private var stopButton: ModelEntity? = nil
 
     @State private var cubes: [ModelEntity] = []
     @State private var spawnTimer: Timer?
@@ -26,55 +26,60 @@ struct ImmersiveView: View {
     @State private var lose: ModelEntity? = nil
 
 
+    // MARK: - Spawn tuning
+    private let spawnInterval: TimeInterval = 5.0
+
+    // MARK: - Despawn tuning
+    private let cubeLifetime: TimeInterval = 5.0
+
+    // Store per-cube despawn timer so we can cancel/reset it
+    @State private var despawnTimers: [ObjectIdentifier: Timer] = [:]
+
+    // MARK: - Gesture state (prevents snapping)
+    @State private var dragStartPosition: SIMD3<Float>? = nil
+    @State private var dragStartTouchWorld: SIMD3<Float>? = nil
+    @State private var rotateStartOrientation: simd_quatf? = nil
+
     var body: some View {
         TimelineView(.animation) { _ in
-            ZStack {
-                RealityView { content in
-                    
-                    // Root nur einmal hinzufügen
-                    content.add(root)
-                    
-                    // Immersive Content nur einmal laden
-                    if immersiveRoot == nil,
-                       let immersiveContentEntity = try? await Entity(
+            RealityView { content in
+
+                content.add(root)
+
+                if immersiveRoot == nil,
+                   let immersiveContentEntity = try? await Entity(
                         named: "Immersive",
                         in: realityKitContentBundle
-                       ) {
-                        
-                        immersiveRoot = immersiveContentEntity
-                        content.add(immersiveContentEntity)
-                        
-                        // Tisch aus der Immersive-Szene suchen
-                        // Der Name muss im Reality Composer "Table" sein
-                        table = immersiveContentEntity.findEntity(named: "Table")
-                    }
-                    
-                    // Boden nur einmal erzeugen
-                    if ground == nil {
-                        let g = makeGround()
-                        root.addChild(g)
-                        ground = g
-                    }
-                    
-                    // Stop-Button nur einmal erzeugen
-                    if stopButton == nil {
-                        let button = makeStopButton()
-                        root.addChild(button)
-                        stopButton = button
-                    }
-                    
-                    if lose == nil {
-                        let message = showEmojiInScene()
-                        root.addChild(message)
-                        lose = message
-                    }
-                    
+                   ) {
+
+                    immersiveRoot = immersiveContentEntity
+                    content.add(immersiveContentEntity)
+
+                    table = immersiveContentEntity.findEntity(named: "Table")
                 }
-                update: { _ in
-                    // Physik übernimmt die Bewegung der Würfel
+
+                if ground == nil {
+                    let g = makeGround()
+                    root.addChild(g)
+                    ground = g
                 }
+
+                if stopButton == nil {
+                    let button = makeStopButton()
+                    root.addChild(button)
+                    stopButton = button
+                }
+                if lose == nil {
+                    let message = showEmojiInScene()
+                    root.addChild(message)
+                    lose = message
+                }
+
+
+            } update: { _ in
+                // Physics runs automatically
             }
-            // Tap-Gesten auf 3D-Entities
+            .gesture(dragGesture.simultaneously(with: rotateGesture))
             .gesture(
                 TapGesture()
                     .targetedToAnyEntity()
@@ -89,31 +94,114 @@ struct ImmersiveView: View {
                     }
             )
         }
-        // Timer genau einmal starten
         .task {
             if spawnTimer == nil {
                 startCubeSpawner()
             }
         }
-        // Timer stoppen, wenn der ImmersiveView verschwindet
         .onDisappear {
             stopCubeSpawner()
+            cancelAllDespawnTimers()
         }
     }
 
+    // MARK: - Gestures
+
+    var dragGesture: some Gesture {
+        DragGesture()
+            .targetedToAnyEntity()
+            .onChanged { value in
+                let entity = value.entity
+                guard entity.name == "SpawnedCube" else { return }
+                guard let parent = entity.parent else { return }
+
+                // While touching/manipulating: cube should NOT despawn
+                cancelDespawn(for: entity)
+
+                // Freeze physics while manipulating
+                if var body = entity.components[PhysicsBodyComponent.self], body.mode != .kinematic {
+                    body.mode = .kinematic
+                    entity.components.set(body)
+                }
+
+                let touchWorld = value.convert(value.location3D, from: .local, to: parent)
+
+                if dragStartPosition == nil {
+                    dragStartPosition = entity.position(relativeTo: parent)
+                    dragStartTouchWorld = touchWorld
+                }
+
+                if let startPos = dragStartPosition, let startTouch = dragStartTouchWorld {
+                    let delta = touchWorld - startTouch
+                    entity.position = startPos + delta
+                }
+            }
+            .onEnded { value in
+                let entity = value.entity
+                guard entity.name == "SpawnedCube" else { return }
+
+                dragStartPosition = nil
+                dragStartTouchWorld = nil
+
+                if var body = entity.components[PhysicsBodyComponent.self] {
+                    body.mode = .dynamic
+                    entity.components.set(body)
+                }
+
+                // Reset despawn timer when released
+                scheduleDespawn(for: entity, after: cubeLifetime)
+            }
+    }
+
+    var rotateGesture: some Gesture {
+        RotateGesture3D()
+            .targetedToAnyEntity()
+            .onChanged { value in
+                let entity = value.entity
+                guard entity.name == "SpawnedCube" else { return }
+
+                // While touching/manipulating: cube should NOT despawn
+                cancelDespawn(for: entity)
+
+                // Freeze physics while manipulating
+                if var body = entity.components[PhysicsBodyComponent.self], body.mode != .kinematic {
+                    body.mode = .kinematic
+                    entity.components.set(body)
+                }
+
+                if rotateStartOrientation == nil {
+                    rotateStartOrientation = entity.transform.rotation
+                }
+                guard let start = rotateStartOrientation else { return }
+
+                let delta = simd_quatf(value.rotation)
+                entity.transform.rotation = start * delta
+            }
+            .onEnded { value in
+                let entity = value.entity
+                guard entity.name == "SpawnedCube" else { return }
+
+                rotateStartOrientation = nil
+
+                if var body = entity.components[PhysicsBodyComponent.self] {
+                    body.mode = .dynamic
+                    entity.components.set(body)
+                }
+
+                // Reset despawn timer when released
+                scheduleDespawn(for: entity, after: cubeLifetime)
+            }
+    }
+
     // MARK: - Cube Spawner
+
     func startCubeSpawner() {
         guard spawnTimer == nil else { return }
 
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-            guard let table else { return }
+        spawnOneCube() // instant first cube
 
-            let cube = makePhysicalCube(above: table)
-            cubes.append(cube)
-            root.addChild(cube)
-            scheduleDespawn(for: cube)
-
-            print("Spawned cube at \(cube.position)")
+        spawnTimer = Timer.scheduledTimer(withTimeInterval: spawnInterval, repeats: true) { _ in
+            spawnOneCube()
         }
 
         print("Spawner started.")
@@ -125,36 +213,76 @@ struct ImmersiveView: View {
         print("Spawner stopped.")
     }
 
-    // MARK: - Despawn after 5s
-    func scheduleDespawn(for cube: ModelEntity) {
-        Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
-            cube.removeFromParent()
-            cubes.removeAll { $0 === cube }
+    private func spawnOneCube() {
+        guard let table else { return }
 
+        let cube = makePhysicalCube(above: table)
+        cubes.append(cube)
+        root.addChild(cube)
+
+        // Start despawn countdown when spawned
+        scheduleDespawn(for: cube, after: cubeLifetime)
+
+        print("Spawned cube at \(cube.position)")
+    }
+
+    // MARK: - Despawn management (cancel/reset per cube)
+
+    private func scheduleDespawn(for cube: Entity, after seconds: TimeInterval) {
+        // Cancel previous timer if exists
+        cancelDespawn(for: cube)
+
+        let id = ObjectIdentifier(cube)
+
+        let t = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
             DispatchQueue.main.async {
-                despawnedCubesCount += 1
-                print("Cube despawned. Count: \(despawnedCubesCount)")
+                // Remove cube
+                cube.removeFromParent()
+                self.cubes.removeAll { $0 === cube }
+                self.despawnTimers[id] = nil
 
-                if let lose {
+                // Increment counter
+                self.despawnedCubesCount += 1
+                print("Cube despawned. Count: \(self.despawnedCubesCount)")
+
+                // Remove previous message entity
+                if let lose = self.lose {
                     lose.removeFromParent()
                     self.lose = nil
                 }
 
+                // Add new message entity
                 let messageEntity = showEmojiInScene()
-                root.addChild(messageEntity)
+                self.root.addChild(messageEntity)
                 self.lose = messageEntity
 
                 // Stop spawner if lost
-                if despawnedCubesCount >= 5 {
-                    showLostMessage = true
-                    stopCubeSpawner()
+                if self.despawnedCubesCount >= 3 {
+                    self.showLostMessage = true
+                    self.stopCubeSpawner()
                 }
             }
         }
+
+        despawnTimers[id] = t
+    }
+
+    private func cancelDespawn(for cube: Entity) {
+        let id = ObjectIdentifier(cube)
+        despawnTimers[id]?.invalidate()
+        despawnTimers[id] = nil
+    }
+
+    private func cancelAllDespawnTimers() {
+        for (_, t) in despawnTimers {
+            t.invalidate()
+        }
+        despawnTimers.removeAll()
     }
 
 
     // MARK: - Cube Factory
+
     func makePhysicalCube(above table: Entity) -> ModelEntity {
         let size: Float = 0.4
 
@@ -162,67 +290,66 @@ struct ImmersiveView: View {
         let material = SimpleMaterial(color: randomCubeColor(), isMetallic: true)
         let cube = ModelEntity(mesh: mesh, materials: [material])
 
-        // Weltposition und Bounds des Tisches
+        cube.name = "SpawnedCube"
+
         let tablePos = table.position(relativeTo: nil)
         let bounds = table.visualBounds(relativeTo: nil)
 
-        // Halbe Breite/Tiefe des Tisches
         let halfWidth = bounds.extents.x / 2
         let halfDepth = bounds.extents.z / 2
 
-        // Zufällige Position innerhalb der Tischfläche
         let randomX = Float.random(in: -halfWidth...halfWidth)
         let randomZ = Float.random(in: -halfDepth...halfDepth)
 
-        // Höhe der Tischoberfläche (Mitte + halbe Höhe)
         let tableTopY = tablePos.y + bounds.extents.y / 2
+        let spawnHeight = Float.random(in: 2.0...4.0)
 
-        // Zufällige Fallhöhe über dem Tisch (2–5 m)
-        let spawnHeight = Float.random(in: 2.0...5.0)
-
-        // Würfel deutlich über der Tischoberfläche spawnen
         cube.position = [
             tablePos.x + randomX,
             tableTopY + spawnHeight,
             tablePos.z + randomZ
         ]
 
-        // Collision
-        cube.components[CollisionComponent.self] = CollisionComponent(
-            shapes: [.generateBox(width: size, height: size, depth: size)]
+        cube.components.set(
+            CollisionComponent(
+                shapes: [.generateBox(size: [size, size, size])]
+            )
         )
 
-        // Physik (Gravitation)
-        let physicsMat = PhysicsMaterialResource.generate(friction: 1.0, restitution: 0.0)
+        cube.components.set(InputTargetComponent())
 
-        cube.components[PhysicsBodyComponent.self] = PhysicsBodyComponent(
-            massProperties: .default,
-            material: physicsMat,
-            mode: .dynamic
+        let physicsMat = PhysicsMaterialResource.generate(
+            friction: 3.0,
+            restitution: 0.0
+        )
+
+        cube.components.set(
+            PhysicsBodyComponent(
+                massProperties: .default,
+                material: physicsMat,
+                mode: .dynamic
+            )
         )
 
         return cube
     }
 
-    // MARK: - 3D Stop Button
+    // MARK: - Stop Button
+
     func makeStopButton() -> ModelEntity {
         let mesh = MeshResource.generateBox(size: 0.15)
         let material = SimpleMaterial(color: .red, isMetallic: false)
         let button = ModelEntity(mesh: mesh, materials: [material])
 
         button.name = "StopButton"
-
-        // Position "in der Luft" vor dem Spieler
         button.position = [0, 1.5, -1.0]
 
-        // Etwas flacher als ein Würfel (relevant nur für Collision)
         button.components.set(
             CollisionComponent(
                 shapes: [.generateBox(size: [0.2, 0.08, 0.05])]
             )
         )
 
-        // Damit er per Tap anvisiert werden kann
         button.components.set(InputTargetComponent())
 
         return button
@@ -248,29 +375,37 @@ struct ImmersiveView: View {
 
 
     // MARK: - Colors
+
     func randomCubeColor() -> UIColor {
         [.red, .orange, .green].randomElement()!
     }
 
-    // MARK: - Ground Plane
+    // MARK: - Ground
+
     func makeGround() -> ModelEntity {
         let mesh = MeshResource.generatePlane(width: 4, depth: 4)
         let material = SimpleMaterial(color: .gray, isMetallic: false)
         let ground = ModelEntity(mesh: mesh, materials: [material])
 
         ground.name = "Ground"
-        ground.position = [0, -0.01, 0]   // leicht unter den Füßen
+        ground.position = [0, -0.01, 0]
 
-        // Collision, damit Würfel darauf landen
         ground.components.set(
             CollisionComponent(
                 shapes: [.generateBox(size: [4, 0.02, 4])]
             )
         )
 
-        // Statische Physik
+        let groundPhysicsMat = PhysicsMaterialResource.generate(
+            friction: 4.0,
+            restitution: 0.0
+        )
+
         ground.components.set(
-            PhysicsBodyComponent(mode: .static)
+            PhysicsBodyComponent(
+                material: groundPhysicsMat,
+                mode: .static
+            )
         )
 
         return ground
