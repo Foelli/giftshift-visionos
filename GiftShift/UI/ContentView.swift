@@ -20,7 +20,7 @@ struct ContentView: View {
                     .foregroundStyle(.white)
                     .shadow(radius: 10)
 
-                Text("Sort the falling gifts and earn coins!")
+                Text("Sort the falling gifts fast!")
                     .font(.title2)
                     .foregroundStyle(.white.opacity(0.8))
 
@@ -34,8 +34,6 @@ struct ContentView: View {
                 .glassBackgroundEffect()
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
-                ToggleImmersiveSpaceButton()
-                    .padding(.top, 20)
             }
         }
         .ornament(attachmentAnchor: .scene(.trailing)) {

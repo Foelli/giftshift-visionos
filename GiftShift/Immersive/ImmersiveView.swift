@@ -9,7 +9,6 @@ import RealityKitContent
 
 struct ImmersiveView: View {
     @Environment(AppModel.self) var appModel
-    @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 
     @State private var root = Entity()
     @State private var immersiveRoot: Entity? = nil
@@ -20,45 +19,60 @@ struct ImmersiveView: View {
 
     @State private var cubes: [ModelEntity] = []
     @State private var spawnTimer: Timer?
+    
+    @State private var despawnedCubesCount = 0
+    @State private var showLostMessage = false
+    
+    @State private var lose: ModelEntity? = nil
+
 
     var body: some View {
         TimelineView(.animation) { _ in
-            RealityView { content in
-
-                // Root nur einmal hinzufügen
-                content.add(root)
-
-                // Immersive Content nur einmal laden
-                if immersiveRoot == nil,
-                   let immersiveContentEntity = try? await Entity(
+            ZStack {
+                RealityView { content in
+                    
+                    // Root nur einmal hinzufügen
+                    content.add(root)
+                    
+                    // Immersive Content nur einmal laden
+                    if immersiveRoot == nil,
+                       let immersiveContentEntity = try? await Entity(
                         named: "Immersive",
                         in: realityKitContentBundle
-                   ) {
-
-                    immersiveRoot = immersiveContentEntity
-                    content.add(immersiveContentEntity)
-
-                    // Tisch aus der Immersive-Szene suchen
-                    // Der Name muss im Reality Composer "Table" sein
-                    table = immersiveContentEntity.findEntity(named: "Table")
+                       ) {
+                        
+                        immersiveRoot = immersiveContentEntity
+                        content.add(immersiveContentEntity)
+                        
+                        // Tisch aus der Immersive-Szene suchen
+                        // Der Name muss im Reality Composer "Table" sein
+                        table = immersiveContentEntity.findEntity(named: "Table")
+                    }
+                    
+                    // Boden nur einmal erzeugen
+                    if ground == nil {
+                        let g = makeGround()
+                        root.addChild(g)
+                        ground = g
+                    }
+                    
+                    // Stop-Button nur einmal erzeugen
+                    if stopButton == nil {
+                        let button = makeStopButton()
+                        root.addChild(button)
+                        stopButton = button
+                    }
+                    
+                    if lose == nil {
+                        let message = showEmojiInScene()
+                        root.addChild(message)
+                        lose = message
+                    }
+                    
                 }
-
-                // Boden nur einmal erzeugen
-                if ground == nil {
-                    let g = makeGround()
-                    root.addChild(g)
-                    ground = g
+                update: { _ in
+                    // Physik übernimmt die Bewegung der Würfel
                 }
-
-                // Stop-Button nur einmal erzeugen
-                if stopButton == nil {
-                    let button = makeStopButton()
-                    root.addChild(button)
-                    stopButton = button
-                }
-
-            } update: { _ in
-                // Physik übernimmt die Bewegung der Würfel
             }
             // Tap-Gesten auf 3D-Entities
             .gesture(
@@ -111,14 +125,34 @@ struct ImmersiveView: View {
         print("Spawner stopped.")
     }
 
-    // MARK: - Despawn after 15s
+    // MARK: - Despawn after 5s
     func scheduleDespawn(for cube: ModelEntity) {
         Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { _ in
             cube.removeFromParent()
             cubes.removeAll { $0 === cube }
-            print("Cube despawned.")
+
+            DispatchQueue.main.async {
+                despawnedCubesCount += 1
+                print("Cube despawned. Count: \(despawnedCubesCount)")
+
+                if let lose {
+                    lose.removeFromParent()
+                    self.lose = nil
+                }
+
+                let messageEntity = showEmojiInScene()
+                root.addChild(messageEntity)
+                self.lose = messageEntity
+
+                // Stop spawner if lost
+                if despawnedCubesCount >= 5 {
+                    showLostMessage = true
+                    stopCubeSpawner()
+                }
+            }
         }
     }
+
 
     // MARK: - Cube Factory
     func makePhysicalCube(above table: Entity) -> ModelEntity {
@@ -193,6 +227,25 @@ struct ImmersiveView: View {
 
         return button
     }
+    
+    // MARK: - Game Score
+    func showEmojiInScene() -> ModelEntity {
+        let message = despawnedCubesCount >= 5 ? "YOU LOST" : "Count: \(despawnedCubesCount)"
+        
+        let mesh = MeshResource.generateText(
+            message,
+            extrusionDepth: 0.05,
+            font: .systemFont(ofSize: 0.5, weight: .bold)
+        )
+
+        let material = SimpleMaterial(color: .green, isMetallic: true)
+        let entity = ModelEntity(mesh: mesh, materials: [material])
+        entity.position = [despawnedCubesCount >= 5 ? -1.5 : -1.2, 2.0, -2.0]
+
+        return entity
+    }
+
+
 
     // MARK: - Colors
     func randomCubeColor() -> UIColor {
