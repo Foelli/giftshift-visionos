@@ -103,7 +103,29 @@ struct ImmersiveView: View {
             stopCubeSpawner()
             cancelAllDespawnTimers()
         }
+        .onChange(of: appModel.startNewGameToken) { _, _ in
+            restartGame()
+        }
     }
+    
+    func restartGame() {
+        print("🔁 Restarting game")
+        stopCubeSpawner()
+        cancelAllDespawnTimers()
+        for cube in cubes {
+            cube.removeFromParent()
+        }
+        cubes.removeAll()
+        if let lose {
+            lose.removeFromParent()
+            self.lose = nil
+        }
+        despawnedCubesCount = 0
+        showLostMessage = false
+        
+        startCubeSpawner()
+    }
+
 
     // MARK: - Gestures
 
@@ -257,9 +279,10 @@ struct ImmersiveView: View {
                 self.lose = messageEntity
 
                 // Stop spawner if lost
-                if self.despawnedCubesCount >= 3 {
+                if self.despawnedCubesCount >= 5 {
                     self.showLostMessage = true
                     self.stopCubeSpawner()
+                    self.appModel.shouldShowWindow = true
                 }
             }
         }

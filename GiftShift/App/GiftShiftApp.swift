@@ -13,8 +13,11 @@ struct GiftShiftApp: App {
     @State private var appModel = AppModel()
     @State private var avPlayerViewModel = AVPlayerViewModel()
     
+    @Environment(\.dismissWindow) var dismissWindow
+    @Environment(\.openWindow) var openWindow
+    
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "Window") {
             if avPlayerViewModel.isPlaying {
                 AVPlayerView(viewModel: avPlayerViewModel)
             } else {
@@ -29,10 +32,17 @@ struct GiftShiftApp: App {
                 .onAppear {
                     appModel.immersiveSpaceState = .open
                     avPlayerViewModel.play()
+                    dismissWindow(id: "Window")
                 }
                 .onDisappear {
                     appModel.immersiveSpaceState = .closed
                     avPlayerViewModel.reset()
+                }
+                .onChange(of: appModel.shouldShowWindow) { _, newValue in
+                    if newValue {
+                        openWindow(id: "Window")
+                        appModel.shouldShowWindow = false
+                    }
                 }
         }
         .immersionStyle(selection: .constant(.full), in: .full)
