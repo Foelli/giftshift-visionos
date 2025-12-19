@@ -7,7 +7,7 @@
 
 def Xform "Root"
 {
-    reorder nameChildren = ["DirectionalLight", "Table", "Ground", "Natural_Cork", "Tree", "Wood", "Pine", "Snow_Ground", "SkyDome", "WoodPlank"]
+    reorder nameChildren = ["DirectionalLight", "Table", "Ground", "Natural_Cork", "Trees", "Bowls", "Snow_Ground", "SkyDome", "WoodPlank"]
     def "SkyDome" (
         active = true
         prepend apiSchemas = ["MaterialBindingAPI"]
@@ -363,7 +363,7 @@ def Xform "Root"
     )
     {
         quatf xformOp:orient = (1, -1.053671e-8, -4.440892e-16, -4.6792393e-24)
-        float3 xformOp:translate = (0, 9.04321, -0.5106516)
+        float3 xformOp:translate = (0.20664352, 4.113183, -0.51065046)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def RealityKitComponent "DirectionalLight"
@@ -461,252 +461,729 @@ def Xform "Root"
         }
     }
 
-    def Xform "Tree" (
+    def Xform "Trees" (
         active = true
     )
     {
-        float3 xformOp:translate = (5, -0.2, 0)
+        float3 xformOp:translate = (1.3473688, 0, 0)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def Xform "Tree" (
+            active = true
+        )
+        {
+            quatf xformOp:orient = (1, 0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            float3 xformOp:translate = (5, -0.2, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+        }
+
+        def Xform "Tree_1" (
+            active = true
+        )
+        {
+            float2 ui:nodegraph:node:pos = (130.34387, 49.179268)
+            int ui:nodegraph:node:stackingOrder = 1
+            quatf xformOp:orient = (1, 0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            def Cone "Cone" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+                customData = {
+                    float3 rotationEulerHint = (0, 0.34906587, 0)
+                }
+            )
+            {
+                uniform token axis = "Y"
+                double height = 0.2
+                rel material:binding = </Pine> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.9848077, 0, 0.17364831, 0)
+                float3 xformOp:scale = (2, 2, 2)
+                float3 xformOp:translate = (2.4686763, 0.37401158, -1.2220173)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Material "DefaultMaterial"
+                {
+                    token outputs:surface.connect = </Root/Trees/Tree_1/Cone/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+                    def Shader "DefaultSurfaceShader"
+                    {
+                        uniform token info:id = "UsdPreviewSurface"
+                        color3f inputs:diffuseColor = (1, 1, 1)
+                        float inputs:roughness = 0.75
+                        token outputs:surface
+                    }
+                }
+            }
+
+            def Cylinder "Cylinder" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+                customData = {
+                    float3 rotationEulerHint = (0, 0.34906587, 0)
+                }
+            )
+            {
+                reorder nameChildren = ["Cone", "DefaultMaterial"]
+                uniform token axis = "Y"
+                double height = 0.2
+                rel material:binding = </Wood> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.9848077, 0, 0.17364833, 0)
+                float3 xformOp:scale = (0.6, 1.4, 0.6)
+                float3 xformOp:translate = (2.4682462, 0.15389979, -1.2220163)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Material "DefaultMaterial"
+                {
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+                    token outputs:surface.connect = </Root/Trees/Tree_1/Cylinder/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+                    def Shader "DefaultSurfaceShader"
+                    {
+                        uniform token info:id = "UsdPreviewSurface"
+                        color3f inputs:diffuseColor = (1, 1, 1)
+                        float inputs:roughness = 0.75
+                        token outputs:surface
+                    }
+                }
+            }
+        }
+
+        def Xform "Tree_2" (
+            active = true
+        )
+        {
+            float2 ui:nodegraph:node:pos = (130.34387, 49.179268)
+            int ui:nodegraph:node:stackingOrder = 1
+            quatf xformOp:orient = (1, 0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            def Cone "Cone" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+                customData = {
+                    float3 rotationEulerHint = (0, 0.3490661, 0)
+                }
+            )
+            {
+                uniform token axis = "Y"
+                double height = 0.2
+                rel material:binding = </Pine> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.9848077, 0, 0.17364831, 0)
+                float3 xformOp:scale = (2, 2, 2)
+                float3 xformOp:translate = (1.8672535, 0.36969316, -3.414616)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Material "DefaultMaterial"
+                {
+                    token outputs:surface.connect = </Root/Trees/Tree_2/Cone/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+                    def Shader "DefaultSurfaceShader"
+                    {
+                        uniform token info:id = "UsdPreviewSurface"
+                        color3f inputs:diffuseColor = (1, 1, 1)
+                        float inputs:roughness = 0.75
+                        token outputs:surface
+                    }
+                }
+            }
+
+            def Cylinder "Cylinder" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+                customData = {
+                    float3 rotationEulerHint = (0, 0.34906614, 0)
+                }
+            )
+            {
+                reorder nameChildren = ["Cone", "DefaultMaterial"]
+                uniform token axis = "Y"
+                double height = 0.2
+                rel material:binding = </Wood> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.9848077, 0, 0.17364833, 0)
+                float3 xformOp:scale = (0.6, 1.4, 0.6)
+                float3 xformOp:translate = (1.8668236, 0.14958137, -3.4146152)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Material "DefaultMaterial"
+                {
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+                    token outputs:surface.connect = </Root/Trees/Tree_2/Cylinder/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+                    def Shader "DefaultSurfaceShader"
+                    {
+                        uniform token info:id = "UsdPreviewSurface"
+                        color3f inputs:diffuseColor = (1, 1, 1)
+                        float inputs:roughness = 0.75
+                        token outputs:surface
+                    }
+                }
+            }
+        }
+
+        def Xform "Tree_3" (
+            active = true
+        )
+        {
+            float2 ui:nodegraph:node:pos = (130.34387, 49.179268)
+            int ui:nodegraph:node:stackingOrder = 1
+            quatf xformOp:orient = (1, 0, 0, 0)
+            float3 xformOp:scale = (1, 1, 1)
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            def Cone "Cone" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+                customData = {
+                    float3 rotationEulerHint = (0, 0.34906587, 0)
+                }
+            )
+            {
+                uniform token axis = "Y"
+                double height = 0.2
+                rel material:binding = </Pine> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.9848077, 0, 0.17364831, 0)
+                float3 xformOp:scale = (2, 2, 2)
+                float3 xformOp:translate = (-2.7629163, 0.36322463, -1.7293718)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Material "DefaultMaterial"
+                {
+                    token outputs:surface.connect = </Root/Trees/Tree_3/Cone/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+                    def Shader "DefaultSurfaceShader"
+                    {
+                        uniform token info:id = "UsdPreviewSurface"
+                        color3f inputs:diffuseColor = (1, 1, 1)
+                        float inputs:roughness = 0.75
+                        token outputs:surface
+                    }
+                }
+            }
+
+            def Cylinder "Cylinder" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+                customData = {
+                    float3 rotationEulerHint = (0, 0.34906587, 0)
+                }
+            )
+            {
+                reorder nameChildren = ["Cone", "DefaultMaterial"]
+                uniform token axis = "Y"
+                double height = 0.2
+                rel material:binding = </Wood> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.9848077, 0, 0.17364833, 0)
+                float3 xformOp:scale = (0.6, 1.4, 0.6)
+                float3 xformOp:translate = (-2.7633464, 0.14311284, -1.7293708)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Material "DefaultMaterial"
+                {
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+                    token outputs:surface.connect = </Root/Trees/Tree_3/Cylinder/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+                    def Shader "DefaultSurfaceShader"
+                    {
+                        uniform token info:id = "UsdPreviewSurface"
+                        color3f inputs:diffuseColor = (1, 1, 1)
+                        float inputs:roughness = 0.75
+                        token outputs:surface
+                    }
+                }
+            }
+        }
     }
 
-    def Xform "Tree_1" (
+    def Xform "Bowls" (
         active = true
+        customData = {
+            float3 rotationEulerHint = (0, 0.06981317, 0)
+        }
     )
     {
-        float2 ui:nodegraph:node:pos = (130.34387, 49.179268)
-        int ui:nodegraph:node:stackingOrder = 1
-        quatf xformOp:orient = (1, 0, 0, 0)
-        float3 xformOp:scale = (1, 1, 1)
-        float3 xformOp:translate = (0, 0, 0)
+        reorder nameChildren = ["GreenBowl", "RedBowl", "BlueBowl"]
+        quatf xformOp:orient = (0.99939084, 0, 0.034899496, 0)
+        float3 xformOp:translate = (0.31344652, 7.7299774e-8, 5.200713)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
-        def Cone "Cone" (
+        def "GreenBowl" (
             active = true
             prepend apiSchemas = ["MaterialBindingAPI"]
             customData = {
-                float3 rotationEulerHint = (0, 0.34906587, 0)
+                float3 rotationEulerHint = (4.712388, 3.4906585, 0)
             }
+            references = @Bowl.usdz@
         )
         {
-            uniform token axis = "Y"
-            double height = 0.2
-            rel material:binding = </Pine> (
+            reorder nameChildren = ["CollisionCheckBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
+            rel material:binding = None (
                 bindMaterialAs = "weakerThanDescendants"
             )
-            double radius = 0.1
-            quatf xformOp:orient = (0.9848077, 0, 0.17364831, 0)
-            float3 xformOp:scale = (2, 2, 2)
-            float3 xformOp:translate = (2.4686763, 0.37401158, -1.2220173)
+            quatf xformOp:orient = (-0.12278781, 0.122787826, 0.69636416, 0.6963643)
+            float3 xformOp:scale = (0.008349949, 0.008349948, 0.008349947)
+            float3 xformOp:translate = (0.30405116, 3.17581e-7, -3.5277867)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
-            def Material "DefaultMaterial"
+            over "Materials" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
             {
-                token outputs:surface.connect = </Root/Tree_1/Cone/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+                rel material:binding = </Pine> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
 
-                def Shader "DefaultSurfaceShader"
+                over "Wei"
                 {
-                    uniform token info:id = "UsdPreviewSurface"
-                    color3f inputs:diffuseColor = (1, 1, 1)
-                    float inputs:roughness = 0.75
-                    token outputs:surface
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+
+                    over "surfaceShader"
+                    {
+                        color3f inputs:diffuseColor = (0.2611926, 1, 0.31607205) (
+                            colorSpace = "srgb_displayp3"
+                        )
+                        float inputs:roughness = 1
+                    }
                 }
             }
-        }
 
-        def Cylinder "Cylinder" (
-            active = true
-            prepend apiSchemas = ["MaterialBindingAPI"]
-            customData = {
-                float3 rotationEulerHint = (0, 0.34906587, 0)
-            }
-        )
-        {
-            reorder nameChildren = ["Cone", "DefaultMaterial"]
-            uniform token axis = "Y"
-            double height = 0.2
-            rel material:binding = </Wood> (
-                bindMaterialAs = "weakerThanDescendants"
-            )
-            double radius = 0.1
-            quatf xformOp:orient = (0.9848077, 0, 0.17364833, 0)
-            float3 xformOp:scale = (0.6, 1.4, 0.6)
-            float3 xformOp:translate = (2.4682462, 0.15389979, -1.2220163)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
-
-            def Material "DefaultMaterial"
+            def RealityKitComponent "RigidBody"
             {
-                token outputs:mtlx:surface
+                uniform token info:id = "RealityKit.RigidBody"
+                token motionType = "Static"
+
+                def RealityKitStruct "massFrame"
+                {
+                    def RealityKitStruct "m_pose"
+                    {
+                    }
+                }
+
+                def RealityKitStruct "material"
+                {
+                }
+            }
+
+            def RealityKitComponent "Collider"
+            {
+                uint group = 1
+                uniform token info:id = "RealityKit.Collider"
+                uint mask = 4294967295
+                token type = "Default"
+
+                def RealityKitStruct "Shape"
+                {
+                    float3 extent = (86.25557, 86.25557, 43.127785)
+                    token shapeType = "Box"
+
+                    def RealityKitStruct "pose"
+                    {
+                        float3 position = (73.81711, 62.752068, 21.563892)
+                    }
+                }
+            }
+
+            def Sphere "CollisionCheckBowl" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                rel material:binding = </Root/Bowls/GreenBowl/Invisible> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.122787826, 0.12278781, 0.69636416, 0.6963643)
+                float3 xformOp:scale = (300, 300, 300)
+                float3 xformOp:translate = (71.69926, 59.712864, 28.417562)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def RealityKitComponent "RigidBody"
+                {
+                    uniform token info:id = "RealityKit.RigidBody"
+                    token motionType = "Static"
+
+                    def RealityKitStruct "massFrame"
+                    {
+                        float m_mass = 1
+
+                        def RealityKitStruct "m_pose"
+                        {
+                        }
+                    }
+
+                    def RealityKitStruct "material"
+                    {
+                    }
+                }
+
+                def RealityKitComponent "Collider"
+                {
+                    uint group = 1
+                    uniform token info:id = "RealityKit.Collider"
+                    uint mask = 4294967295
+                    token type = "Trigger"
+
+                    def RealityKitStruct "Shape"
+                    {
+                        float3 extent = (0.2, 0.2, 0.2)
+                        float radius = 0.1
+                        token shapeType = "Sphere"
+
+                        def RealityKitStruct "pose"
+                        {
+                        }
+                    }
+                }
+            }
+
+            def Material "Invisible"
+            {
+                token outputs:mtlx:surface.connect = </Root/Bowls/GreenBowl/Invisible/PreviewSurface.outputs:out>
                 token outputs:realitykit:vertex
-                token outputs:surface.connect = </Root/Tree_1/Cylinder/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+                float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (335.25, 100.5)
+                int ui:nodegraph:realitykit:subgraphOutputs:stackingOrder = 1
 
-                def Shader "DefaultSurfaceShader"
+                def Shader "PreviewSurface"
                 {
-                    uniform token info:id = "UsdPreviewSurface"
-                    color3f inputs:diffuseColor = (1, 1, 1)
-                    float inputs:roughness = 0.75
-                    token outputs:surface
-                }
-            }
-        }
-    }
-
-    def Xform "Tree_2" (
-        active = true
-    )
-    {
-        float2 ui:nodegraph:node:pos = (130.34387, 49.179268)
-        int ui:nodegraph:node:stackingOrder = 1
-        quatf xformOp:orient = (1, 0, 0, 0)
-        float3 xformOp:scale = (1, 1, 1)
-        float3 xformOp:translate = (0, 0, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
-
-        def Cone "Cone" (
-            active = true
-            prepend apiSchemas = ["MaterialBindingAPI"]
-            customData = {
-                float3 rotationEulerHint = (0, 0.3490661, 0)
-            }
-        )
-        {
-            uniform token axis = "Y"
-            double height = 0.2
-            rel material:binding = </Pine> (
-                bindMaterialAs = "weakerThanDescendants"
-            )
-            double radius = 0.1
-            quatf xformOp:orient = (0.9848077, 0, 0.17364831, 0)
-            float3 xformOp:scale = (2, 2, 2)
-            float3 xformOp:translate = (1.8672535, 0.36969316, -3.414616)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
-
-            def Material "DefaultMaterial"
-            {
-                token outputs:surface.connect = </Root/Tree_2/Cone/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
-
-                def Shader "DefaultSurfaceShader"
-                {
-                    uniform token info:id = "UsdPreviewSurface"
-                    color3f inputs:diffuseColor = (1, 1, 1)
-                    float inputs:roughness = 0.75
-                    token outputs:surface
+                    uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+                    float3 inputs:normal = (0, 0, 0)
+                    float inputs:opacity = 0
+                    token outputs:out
+                    float2 ui:nodegraph:node:pos = (93.5, 100.5)
+                    int ui:nodegraph:node:stackingOrder = 6
+                    string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["Advanced", "inputs:emissiveColor"]
                 }
             }
         }
 
-        def Cylinder "Cylinder" (
+        def "RedBowl" (
             active = true
             prepend apiSchemas = ["MaterialBindingAPI"]
             customData = {
-                float3 rotationEulerHint = (0, 0.34906614, 0)
+                float3 rotationEulerHint = (4.712388, 3.4906585, 0)
             }
+            references = @Bowl.usdz@
         )
         {
-            reorder nameChildren = ["Cone", "DefaultMaterial"]
-            uniform token axis = "Y"
-            double height = 0.2
-            rel material:binding = </Wood> (
+            reorder nameChildren = ["CollisionCheckBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
+            rel material:binding = None (
                 bindMaterialAs = "weakerThanDescendants"
             )
-            double radius = 0.1
-            quatf xformOp:orient = (0.9848077, 0, 0.17364833, 0)
-            float3 xformOp:scale = (0.6, 1.4, 0.6)
-            float3 xformOp:translate = (1.8668236, 0.14958137, -3.4146152)
+            float2 ui:nodegraph:node:pos = (215.75, 104.5)
+            int ui:nodegraph:node:stackingOrder = 1
+            quatf xformOp:orient = (-0.12278781, 0.122787826, 0.69636416, 0.6963643)
+            float3 xformOp:scale = (0.008349949, 0.008349948, 0.008349947)
+            float3 xformOp:translate = (-0.68115425, 7.711351e-7, -4.083187)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
-            def Material "DefaultMaterial"
+            over "Materials" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
             {
-                token outputs:mtlx:surface
+                rel material:binding = </Pine> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+
+                over "Wei"
+                {
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+
+                    over "surfaceShader"
+                    {
+                        color3f inputs:diffuseColor = (1, 0.28515586, 0.2659955) (
+                            colorSpace = "srgb_displayp3"
+                        )
+                        float inputs:roughness = 1
+                    }
+                }
+            }
+
+            def RealityKitComponent "RigidBody"
+            {
+                uniform token info:id = "RealityKit.RigidBody"
+                token motionType = "Static"
+
+                def RealityKitStruct "massFrame"
+                {
+                    def RealityKitStruct "m_pose"
+                    {
+                    }
+                }
+
+                def RealityKitStruct "material"
+                {
+                }
+            }
+
+            def RealityKitComponent "Collider"
+            {
+                uint group = 1
+                uniform token info:id = "RealityKit.Collider"
+                uint mask = 4294967295
+                token type = "Default"
+
+                def RealityKitStruct "Shape"
+                {
+                    float3 extent = (86.25557, 86.25557, 43.127785)
+                    token shapeType = "Box"
+
+                    def RealityKitStruct "pose"
+                    {
+                        float3 position = (73.81711, 62.752068, 21.563892)
+                    }
+                }
+            }
+
+            def Sphere "CollisionCheckBowl" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                rel material:binding = </Root/Bowls/RedBowl/Invisible> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.122787826, 0.12278781, 0.69636416, 0.6963643)
+                float3 xformOp:scale = (300, 300, 300)
+                float3 xformOp:translate = (71.69926, 59.712864, 28.417562)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def RealityKitComponent "RigidBody"
+                {
+                    uniform token info:id = "RealityKit.RigidBody"
+                    token motionType = "Static"
+
+                    def RealityKitStruct "massFrame"
+                    {
+                        float m_mass = 1
+
+                        def RealityKitStruct "m_pose"
+                        {
+                        }
+                    }
+
+                    def RealityKitStruct "material"
+                    {
+                    }
+                }
+
+                def RealityKitComponent "Collider"
+                {
+                    uint group = 1
+                    uniform token info:id = "RealityKit.Collider"
+                    uint mask = 4294967295
+                    token type = "Trigger"
+
+                    def RealityKitStruct "Shape"
+                    {
+                        float3 extent = (0.2, 0.2, 0.2)
+                        float radius = 0.1
+                        token shapeType = "Sphere"
+
+                        def RealityKitStruct "pose"
+                        {
+                        }
+                    }
+                }
+            }
+
+            def Material "Invisible"
+            {
+                token outputs:mtlx:surface.connect = </Root/Bowls/RedBowl/Invisible/PreviewSurface.outputs:out>
                 token outputs:realitykit:vertex
-                token outputs:surface.connect = </Root/Tree_2/Cylinder/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+                float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (335.25, 100.5)
+                int ui:nodegraph:realitykit:subgraphOutputs:stackingOrder = 1
 
-                def Shader "DefaultSurfaceShader"
+                def Shader "PreviewSurface"
                 {
-                    uniform token info:id = "UsdPreviewSurface"
-                    color3f inputs:diffuseColor = (1, 1, 1)
-                    float inputs:roughness = 0.75
-                    token outputs:surface
-                }
-            }
-        }
-    }
-
-    def Xform "Tree_3" (
-        active = true
-    )
-    {
-        float2 ui:nodegraph:node:pos = (130.34387, 49.179268)
-        int ui:nodegraph:node:stackingOrder = 1
-        quatf xformOp:orient = (1, 0, 0, 0)
-        float3 xformOp:scale = (1, 1, 1)
-        float3 xformOp:translate = (0, 0, 0)
-        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
-
-        def Cone "Cone" (
-            active = true
-            prepend apiSchemas = ["MaterialBindingAPI"]
-            customData = {
-                float3 rotationEulerHint = (0, 0.34906587, 0)
-            }
-        )
-        {
-            uniform token axis = "Y"
-            double height = 0.2
-            rel material:binding = </Pine> (
-                bindMaterialAs = "weakerThanDescendants"
-            )
-            double radius = 0.1
-            quatf xformOp:orient = (0.9848077, 0, 0.17364831, 0)
-            float3 xformOp:scale = (2, 2, 2)
-            float3 xformOp:translate = (-2.7629163, 0.36322463, -1.7293718)
-            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
-
-            def Material "DefaultMaterial"
-            {
-                token outputs:surface.connect = </Root/Tree_3/Cone/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
-
-                def Shader "DefaultSurfaceShader"
-                {
-                    uniform token info:id = "UsdPreviewSurface"
-                    color3f inputs:diffuseColor = (1, 1, 1)
-                    float inputs:roughness = 0.75
-                    token outputs:surface
+                    uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+                    float3 inputs:normal = (0, 0, 0)
+                    float inputs:opacity = 0
+                    token outputs:out
+                    float2 ui:nodegraph:node:pos = (93.5, 100.5)
+                    int ui:nodegraph:node:stackingOrder = 6
+                    string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["Advanced", "inputs:emissiveColor"]
                 }
             }
         }
 
-        def Cylinder "Cylinder" (
+        def "BlueBowl" (
             active = true
             prepend apiSchemas = ["MaterialBindingAPI"]
             customData = {
-                float3 rotationEulerHint = (0, 0.34906587, 0)
+                float3 rotationEulerHint = (4.712388, 3.4906585, 0)
             }
+            references = @Bowl.usdz@
         )
         {
-            reorder nameChildren = ["Cone", "DefaultMaterial"]
-            uniform token axis = "Y"
-            double height = 0.2
-            rel material:binding = </Wood> (
+            reorder nameChildren = ["CollisionCheckBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
+            rel material:binding = None (
                 bindMaterialAs = "weakerThanDescendants"
             )
-            double radius = 0.1
-            quatf xformOp:orient = (0.9848077, 0, 0.17364833, 0)
-            float3 xformOp:scale = (0.6, 1.4, 0.6)
-            float3 xformOp:translate = (-2.7633464, 0.14311284, -1.7293708)
+            float2 ui:nodegraph:node:pos = (235.75, 124.5)
+            int ui:nodegraph:node:stackingOrder = 2
+            quatf xformOp:orient = (-0.12278781, 0.122787826, 0.69636416, 0.6963643)
+            float3 xformOp:scale = (0.008349949, 0.008349948, 0.008349947)
+            float3 xformOp:translate = (1.3797549, 6.556511e-7, -3.9223478)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
-            def Material "DefaultMaterial"
+            over "Materials" (
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
             {
-                token outputs:mtlx:surface
+                rel material:binding = </Pine> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+
+                over "Wei"
+                {
+                    token outputs:mtlx:surface
+                    token outputs:realitykit:vertex
+
+                    over "surfaceShader"
+                    {
+                        color3f inputs:diffuseColor = (0.20731232, 0.31427774, 1) (
+                            colorSpace = "srgb_displayp3"
+                        )
+                        float inputs:roughness = 1
+                    }
+                }
+            }
+
+            def RealityKitComponent "RigidBody"
+            {
+                uniform token info:id = "RealityKit.RigidBody"
+                token motionType = "Static"
+
+                def RealityKitStruct "massFrame"
+                {
+                    def RealityKitStruct "m_pose"
+                    {
+                    }
+                }
+
+                def RealityKitStruct "material"
+                {
+                }
+            }
+
+            def RealityKitComponent "Collider"
+            {
+                uint group = 1
+                uniform token info:id = "RealityKit.Collider"
+                uint mask = 4294967295
+                token type = "Default"
+
+                def RealityKitStruct "Shape"
+                {
+                    float3 extent = (86.25557, 86.25557, 43.127785)
+                    token shapeType = "Box"
+
+                    def RealityKitStruct "pose"
+                    {
+                        float3 position = (73.81711, 62.752068, 21.563892)
+                    }
+                }
+            }
+
+            def Sphere "CollisionCheckBowl" (
+                active = true
+                prepend apiSchemas = ["MaterialBindingAPI"]
+            )
+            {
+                rel material:binding = </Root/Bowls/BlueBowl/Invisible> (
+                    bindMaterialAs = "weakerThanDescendants"
+                )
+                double radius = 0.1
+                quatf xformOp:orient = (0.122787826, 0.12278781, 0.69636416, 0.6963643)
+                float3 xformOp:scale = (300, 300, 300)
+                float3 xformOp:translate = (71.69926, 59.712864, 28.417562)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def RealityKitComponent "RigidBody"
+                {
+                    uniform token info:id = "RealityKit.RigidBody"
+                    token motionType = "Static"
+
+                    def RealityKitStruct "massFrame"
+                    {
+                        float m_mass = 1
+
+                        def RealityKitStruct "m_pose"
+                        {
+                        }
+                    }
+
+                    def RealityKitStruct "material"
+                    {
+                    }
+                }
+
+                def RealityKitComponent "Collider"
+                {
+                    uint group = 1
+                    uniform token info:id = "RealityKit.Collider"
+                    uint mask = 4294967295
+                    token type = "Trigger"
+
+                    def RealityKitStruct "Shape"
+                    {
+                        float3 extent = (0.2, 0.2, 0.2)
+                        float radius = 0.1
+                        token shapeType = "Sphere"
+
+                        def RealityKitStruct "pose"
+                        {
+                        }
+                    }
+                }
+            }
+
+            def Material "Invisible"
+            {
+                token outputs:mtlx:surface.connect = </Root/Bowls/BlueBowl/Invisible/PreviewSurface.outputs:out>
                 token outputs:realitykit:vertex
-                token outputs:surface.connect = </Root/Tree_3/Cylinder/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+                float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (335.25, 100.5)
+                int ui:nodegraph:realitykit:subgraphOutputs:stackingOrder = 1
 
-                def Shader "DefaultSurfaceShader"
+                def Shader "PreviewSurface"
                 {
-                    uniform token info:id = "UsdPreviewSurface"
-                    color3f inputs:diffuseColor = (1, 1, 1)
-                    float inputs:roughness = 0.75
-                    token outputs:surface
+                    uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+                    float3 inputs:normal = (0, 0, 0)
+                    float inputs:opacity = 0
+                    token outputs:out
+                    float2 ui:nodegraph:node:pos = (93.5, 100.5)
+                    int ui:nodegraph:node:stackingOrder = 6
+                    string[] ui:nodegraph:realitykit:node:attributesShowingChildren = ["Advanced", "inputs:emissiveColor"]
                 }
             }
         }
