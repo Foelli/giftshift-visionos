@@ -9,7 +9,6 @@ import RealityKitContent
 
 struct ImmersiveView: View {
     @Environment(AppModel.self) var appModel
-    @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 
     @State private var root = Entity()
     @State private var immersiveRoot: Entity? = nil
@@ -18,11 +17,14 @@ struct ImmersiveView: View {
     @State private var table: Entity? = nil
     @State private var stopButton: ModelEntity? = nil
 
-    // Head-locked anchor (object follows the user's head)
-    @State private var headAnchor = AnchorEntity(.head)
-
     @State private var cubes: [ModelEntity] = []
     @State private var spawnTimer: Timer?
+    
+    @State private var despawnedCubesCount = 0
+    @State private var showLostMessage = false
+    
+    @State private var lose: ModelEntity? = nil
+
 
     // MARK: - Spawn tuning
     private let spawnInterval: TimeInterval = 5.0
@@ -42,21 +44,17 @@ struct ImmersiveView: View {
         TimelineView(.animation) { _ in
             RealityView { content in
 
-                // World root
                 content.add(root)
-
-                // Head anchor (must be added to content, not to root)
-                content.add(headAnchor)
 
                 if immersiveRoot == nil,
                    let immersiveContentEntity = try? await Entity(
                         named: "Immersive",
                         in: realityKitContentBundle
                    ) {
+
                     immersiveRoot = immersiveContentEntity
                     content.add(immersiveContentEntity)
 
-                    // Still keep table reference if you need it later for basket placement etc.
                     table = immersiveContentEntity.findEntity(named: "Table")
                 }
 
@@ -71,6 +69,12 @@ struct ImmersiveView: View {
                     root.addChild(button)
                     stopButton = button
                 }
+                if lose == nil {
+                    let message = showEmojiInScene()
+                    root.addChild(message)
+                    lose = message
+                }
+
 
             } update: { _ in
                 // Physics runs automatically
@@ -114,16 +118,16 @@ struct ImmersiveView: View {
                 // While touching/manipulating: cube should NOT despawn
                 cancelDespawn(for: entity)
 
-                // Ensure cube is head-locked while being manipulated
-                beginHeadLockedManipulation(entity)
+                // Freeze physics while manipulating
+                if var body = entity.components[PhysicsBodyComponent.self], body.mode != .kinematic {
+                    body.mode = .kinematic
+                    entity.components.set(body)
+                }
 
-                // Re-fetch parent (it may have changed due to reparenting)
-                guard let newParent = entity.parent else { return }
-
-                let touchWorld = value.convert(value.location3D, from: .local, to: newParent)
+                let touchWorld = value.convert(value.location3D, from: .local, to: parent)
 
                 if dragStartPosition == nil {
-                    dragStartPosition = entity.position(relativeTo: newParent)
+                    dragStartPosition = entity.position(relativeTo: parent)
                     dragStartTouchWorld = touchWorld
                 }
 
@@ -139,8 +143,10 @@ struct ImmersiveView: View {
                 dragStartPosition = nil
                 dragStartTouchWorld = nil
 
-                // Drop into world space when released
-                dropToWorld(entity)
+                if var body = entity.components[PhysicsBodyComponent.self] {
+                    body.mode = .dynamic
+                    entity.components.set(body)
+                }
 
                 // Reset despawn timer when released
                 scheduleDespawn(for: entity, after: cubeLifetime)
@@ -157,8 +163,11 @@ struct ImmersiveView: View {
                 // While touching/manipulating: cube should NOT despawn
                 cancelDespawn(for: entity)
 
-                // Ensure cube is head-locked while being manipulated
-                beginHeadLockedManipulation(entity)
+                // Freeze physics while manipulating
+                if var body = entity.components[PhysicsBodyComponent.self], body.mode != .kinematic {
+                    body.mode = .kinematic
+                    entity.components.set(body)
+                }
 
                 if rotateStartOrientation == nil {
                     rotateStartOrientation = entity.transform.rotation
@@ -174,46 +183,14 @@ struct ImmersiveView: View {
 
                 rotateStartOrientation = nil
 
-                // Drop into world space when released
-                dropToWorld(entity)
+                if var body = entity.components[PhysicsBodyComponent.self] {
+                    body.mode = .dynamic
+                    entity.components.set(body)
+                }
 
                 // Reset despawn timer when released
                 scheduleDespawn(for: entity, after: cubeLifetime)
             }
-    }
-
-    // MARK: - Head-locked manipulation helpers
-
-    /// While manipulating: make kinematic and parent to headAnchor (preserving world transform).
-    private func beginHeadLockedManipulation(_ entity: Entity) {
-        // Freeze physics while manipulating
-        if var body = entity.components[PhysicsBodyComponent.self], body.mode != .kinematic {
-            body.mode = .kinematic
-            entity.components.set(body)
-        }
-
-        // Already head-locked
-        if entity.parent === headAnchor { return }
-
-        // Preserve world transform while reparenting to head anchor
-        let world = entity.transformMatrix(relativeTo: nil)
-        entity.removeFromParent()
-        headAnchor.addChild(entity)
-        entity.setTransformMatrix(world, relativeTo: nil)
-    }
-
-    /// On release: preserve world transform, reparent to world root, switch back to dynamic.
-    private func dropToWorld(_ entity: Entity) {
-        let world = entity.transformMatrix(relativeTo: nil)
-
-        entity.removeFromParent()
-        root.addChild(entity)
-        entity.setTransformMatrix(world, relativeTo: nil)
-
-        if var body = entity.components[PhysicsBodyComponent.self] {
-            body.mode = .dynamic
-            entity.components.set(body)
-        }
     }
 
     // MARK: - Cube Spawner
@@ -237,29 +214,54 @@ struct ImmersiveView: View {
     }
 
     private func spawnOneCube() {
-        let cube = makeHeadLockedCube()
-        cubes.append(cube)
+        guard let table else { return }
 
-        // Spawn as child of headAnchor so it stays in front while the user turns
-        headAnchor.addChild(cube)
+        let cube = makePhysicalCube(above: table)
+        cubes.append(cube)
+        root.addChild(cube)
 
         // Start despawn countdown when spawned
         scheduleDespawn(for: cube, after: cubeLifetime)
 
-        print("Spawned head-locked cube at \(cube.position)")
+        print("Spawned cube at \(cube.position)")
     }
 
     // MARK: - Despawn management (cancel/reset per cube)
 
     private func scheduleDespawn(for cube: Entity, after seconds: TimeInterval) {
+        // Cancel previous timer if exists
         cancelDespawn(for: cube)
 
         let id = ObjectIdentifier(cube)
+
         let t = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { _ in
-            self.despawnTimers[id] = nil
-            cube.removeFromParent()
-            self.cubes.removeAll { $0 === cube }
-            print("Cube despawned.")
+            DispatchQueue.main.async {
+                // Remove cube
+                cube.removeFromParent()
+                self.cubes.removeAll { $0 === cube }
+                self.despawnTimers[id] = nil
+
+                // Increment counter
+                self.despawnedCubesCount += 1
+                print("Cube despawned. Count: \(self.despawnedCubesCount)")
+
+                // Remove previous message entity
+                if let lose = self.lose {
+                    lose.removeFromParent()
+                    self.lose = nil
+                }
+
+                // Add new message entity
+                let messageEntity = showEmojiInScene()
+                self.root.addChild(messageEntity)
+                self.lose = messageEntity
+
+                // Stop spawner if lost
+                if self.despawnedCubesCount >= 3 {
+                    self.showLostMessage = true
+                    self.stopCubeSpawner()
+                }
+            }
         }
 
         despawnTimers[id] = t
@@ -272,13 +274,16 @@ struct ImmersiveView: View {
     }
 
     private func cancelAllDespawnTimers() {
-        for (_, t) in despawnTimers { t.invalidate() }
+        for (_, t) in despawnTimers {
+            t.invalidate()
+        }
         despawnTimers.removeAll()
     }
 
-    // MARK: - Cube Factory (Head-locked spawn)
 
-    func makeHeadLockedCube() -> ModelEntity {
+    // MARK: - Cube Factory
+
+    func makePhysicalCube(above table: Entity) -> ModelEntity {
         let size: Float = 0.4
 
         let mesh = MeshResource.generateBox(size: size)
@@ -287,17 +292,30 @@ struct ImmersiveView: View {
 
         cube.name = "SpawnedCube"
 
-        // Spawn in front of the user's head (headAnchor local space)
-        let x = Float.random(in: -0.15...0.15)
-        let y = Float.random(in: -0.05...0.10)
-        let z: Float = -0.7
-        cube.position = [x, y, z]
+        let tablePos = table.position(relativeTo: nil)
+        let bounds = table.visualBounds(relativeTo: nil)
+
+        let halfWidth = bounds.extents.x / 2
+        let halfDepth = bounds.extents.z / 2
+
+        let randomX = Float.random(in: -halfWidth...halfWidth)
+        let randomZ = Float.random(in: -halfDepth...halfDepth)
+
+        let tableTopY = tablePos.y + bounds.extents.y / 2
+        let spawnHeight = Float.random(in: 2.0...4.0)
+
+        cube.position = [
+            tablePos.x + randomX,
+            tableTopY + spawnHeight,
+            tablePos.z + randomZ
+        ]
 
         cube.components.set(
             CollisionComponent(
                 shapes: [.generateBox(size: [size, size, size])]
             )
         )
+
         cube.components.set(InputTargetComponent())
 
         let physicsMat = PhysicsMaterialResource.generate(
@@ -305,12 +323,11 @@ struct ImmersiveView: View {
             restitution: 0.0
         )
 
-        // Kinematic while head-locked so gravity doesn't pull it away
         cube.components.set(
             PhysicsBodyComponent(
                 massProperties: .default,
                 material: physicsMat,
-                mode: .kinematic
+                mode: .dynamic
             )
         )
 
@@ -332,10 +349,30 @@ struct ImmersiveView: View {
                 shapes: [.generateBox(size: [0.2, 0.08, 0.05])]
             )
         )
+
         button.components.set(InputTargetComponent())
 
         return button
     }
+    
+    // MARK: - Game Score
+    func showEmojiInScene() -> ModelEntity {
+        let message = despawnedCubesCount >= 5 ? "YOU LOST" : "Count: \(despawnedCubesCount)"
+        
+        let mesh = MeshResource.generateText(
+            message,
+            extrusionDepth: 0.05,
+            font: .systemFont(ofSize: 0.5, weight: .bold)
+        )
+
+        let material = SimpleMaterial(color: .green, isMetallic: true)
+        let entity = ModelEntity(mesh: mesh, materials: [material])
+        entity.position = [despawnedCubesCount >= 5 ? -1.5 : -1.2, 2.0, -2.0]
+
+        return entity
+    }
+
+
 
     // MARK: - Colors
 

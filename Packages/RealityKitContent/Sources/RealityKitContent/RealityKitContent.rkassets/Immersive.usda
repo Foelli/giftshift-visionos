@@ -725,13 +725,13 @@ def Xform "Root"
     def Xform "Bowls" (
         active = true
         customData = {
-            float3 rotationEulerHint = (0, 0.13962635, 0)
+            float3 rotationEulerHint = (0, 0.06981317, 0)
         }
     )
     {
         reorder nameChildren = ["GreenBowl", "RedBowl", "BlueBowl"]
-        quatf xformOp:orient = (0.997564, 0, 0.06975648, 0)
-        float3 xformOp:translate = (0.67204595, -1.0803342e-7, -0.11849941)
+        quatf xformOp:orient = (0.99939084, 0, 0.034899496, 0)
+        float3 xformOp:translate = (0.31344652, 7.7299774e-8, 5.200713)
         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
         def "GreenBowl" (
@@ -749,7 +749,7 @@ def Xform "Root"
             )
             quatf xformOp:orient = (-0.12278781, 0.122787826, 0.69636416, 0.6963643)
             float3 xformOp:scale = (0.008349949, 0.008349948, 0.008349947)
-            float3 xformOp:translate = (0.35523403, 4.9360096e-7, -4.2961583)
+            float3 xformOp:translate = (0.30405116, 3.17581e-7, -3.5277867)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
             over "Materials" (
