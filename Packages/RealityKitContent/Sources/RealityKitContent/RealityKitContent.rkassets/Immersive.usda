@@ -743,7 +743,7 @@ def Xform "Root"
             references = @Bowl.usdz@
         )
         {
-            reorder nameChildren = ["CollisionCheckBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
+            reorder nameChildren = ["CollisionCheckGreenBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
             rel material:binding = None (
                 bindMaterialAs = "weakerThanDescendants"
             )
@@ -811,7 +811,7 @@ def Xform "Root"
                 }
             }
 
-            def Sphere "CollisionCheckBowl" (
+            def Sphere "CollisionCheckGreenBowl" (
                 active = true
                 prepend apiSchemas = ["MaterialBindingAPI"]
             )
@@ -893,7 +893,7 @@ def Xform "Root"
             references = @Bowl.usdz@
         )
         {
-            reorder nameChildren = ["CollisionCheckBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
+            reorder nameChildren = ["CollisionCheckRedBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
             rel material:binding = None (
                 bindMaterialAs = "weakerThanDescendants"
             )
@@ -963,7 +963,7 @@ def Xform "Root"
                 }
             }
 
-            def Sphere "CollisionCheckBowl" (
+            def Sphere "CollisionCheckRedBowl" (
                 active = true
                 prepend apiSchemas = ["MaterialBindingAPI"]
             )
@@ -1045,7 +1045,7 @@ def Xform "Root"
             references = @Bowl.usdz@
         )
         {
-            reorder nameChildren = ["CollisionCheckBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
+            reorder nameChildren = ["CollisionCheckBlueBowl", "Invisible", "Materials", "Geom", "RigidBody", "Collider"]
             rel material:binding = None (
                 bindMaterialAs = "weakerThanDescendants"
             )
@@ -1115,7 +1115,7 @@ def Xform "Root"
                 }
             }
 
-            def Sphere "CollisionCheckBowl" (
+            def Sphere "CollisionCheckBlueBowl" (
                 active = true
                 prepend apiSchemas = ["MaterialBindingAPI"]
             )

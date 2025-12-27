@@ -32,15 +32,34 @@ struct ImmersiveView: View {
                 content.add(root)
 
                 if immersiveRoot == nil,
-                   let immersiveContentEntity = try? await Entity(
+                   let rcRoot = try? await Entity(
                         named: "Immersive",
                         in: realityKitContentBundle
                    ) {
 
-                    immersiveRoot = immersiveContentEntity
-                    content.add(immersiveContentEntity)
+                    immersiveRoot = rcRoot
+                    content.add(rcRoot)
 
-                    table = immersiveContentEntity.findEntity(named: "Table")
+                    // DEBUG (keep this for one run)
+                    print("Loaded RC root:", rcRoot.name.isEmpty ? "(no name)" : rcRoot.name)
+                    printEntityTree(rcRoot)
+
+                    table = rcRoot.findEntity(named: "Table")
+
+                    let blue  = rcRoot.findEntity(named: "CollisionCheckBlueBowl")
+                    let red   = rcRoot.findEntity(named: "CollisionCheckRedBowl")
+                    let green = rcRoot.findEntity(named: "CollisionCheckGreenBowl")
+
+                    prepareTrigger(blue)
+                    prepareTrigger(red)
+                    prepareTrigger(green)
+
+                    game.setBowlTriggers(blue: blue, red: red, green: green)
+
+                    print("Triggers found:",
+                          blue?.name ?? "nil",
+                          red?.name ?? "nil",
+                          green?.name ?? "nil")
                 }
 
                 // Attach refs only when needed (prevents re-attaching every frame)
@@ -84,7 +103,7 @@ struct ImmersiveView: View {
         .onDisappear {
             game.stopAll()
         }
-        // ✅ merged from main: restart game when token changes
+        // Restart when main token changes
         .onChange(of: appModel.startNewGameToken) { _, _ in
             game.restartGame()
         }
@@ -170,6 +189,28 @@ struct ImmersiveView: View {
 
                 game.onManipulationEnded(entity)
             }
+    }
+
+    // MARK: - Physics trigger prep
+    private func prepareTrigger(_ entity: Entity?) {
+        guard let e = entity else { return }
+
+        // Ensure it participates in physics so CollisionEvents fire.
+        if e.components[PhysicsBodyComponent.self] == nil {
+            e.components.set(PhysicsBodyComponent(mode: .static))
+        }
+
+        // NOTE: Don't rely on CollisionComponent.mode (not available on all SDKs).
+        // If your RC entity is already set to Trigger, great; otherwise static collisions still emit events.
+    }
+
+    // MARK: - Debug: print loaded entity hierarchy
+    private func printEntityTree(_ entity: Entity, indent: String = "") {
+        let name = entity.name.isEmpty ? "(no name)" : entity.name
+        print("\(indent)- \(name)")
+        for child in entity.children {
+            printEntityTree(child, indent: indent + "  ")
+        }
     }
 }
 
