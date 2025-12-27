@@ -1,9 +1,4 @@
-//
-//  CubeGameConroller.swift
-//  GiftShift
-//
-//  Created by Simon Felhofer, Emma Sysel, Jasmin Rechberger on 19.12.25.
-//
+// CubeGameController.swift
 
 import Foundation
 import RealityKit
@@ -11,19 +6,23 @@ import RealityKit
 @MainActor
 final class CubeGameController {
 
-    // MARK: - Dependencies / Config
+    // MARK: - Dependencies
 
     private let factory: EntityFactory
-    private let spawnInterval: TimeInterval
-    private let cubeLifetime: TimeInterval
-    private let stopAtDespawnCount: Int
+
+    // MARK: - Tuning (kept identical to your current behavior)
+
+    private let spawnInterval: TimeInterval = 5.0
+    private let cubeLifetime: TimeInterval = 5.0
+    private let loseThreshold: Int = 5
 
     // MARK: - Scene references (set by ImmersiveView)
 
     weak var root: Entity?
     weak var table: Entity?
+    weak var appModel: AppModel?
 
-    // MARK: - Game state (moved out of ImmersiveView)
+    // MARK: - State
 
     private(set) var cubes: [ModelEntity] = []
     private(set) var spawnTimer: Timer?
@@ -31,40 +30,26 @@ final class CubeGameController {
     private(set) var despawnedCubesCount: Int = 0
     private(set) var showLostMessage: Bool = false
 
-    private var loseEntity: ModelEntity?
+    private var scoreEntity: ModelEntity?
 
-    // Store per-cube despawn timer (same approach as your current code)
+    // Per-cube despawn timers
     private var despawnTimers: [ObjectIdentifier: Timer] = [:]
 
     // MARK: - Init
 
-    init(
-        factory: EntityFactory? = nil,
-        spawnInterval: TimeInterval = 5.0,
-        cubeLifetime: TimeInterval = 5.0,
-        stopAtDespawnCount: Int = 3
-    ) {
-        self.factory = factory ?? EntityFactory()
-        self.spawnInterval = spawnInterval
-        self.cubeLifetime = cubeLifetime
-        self.stopAtDespawnCount = stopAtDespawnCount
+    init(factory: EntityFactory = EntityFactory()) {
+        self.factory = factory
     }
 
-    // MARK: - Public API (called by ImmersiveView)
+    // MARK: - Attach
 
-    func attach(root: Entity, table: Entity?) {
+    func attach(root: Entity, table: Entity?, appModel: AppModel?) {
         self.root = root
         self.table = table
+        self.appModel = appModel
     }
 
-    func ensureScoreEntityExists() {
-        guard let root else { return }
-        guard loseEntity == nil else { return }
-
-        let message = factory.makeScoreEntity(despawnedCubesCount: despawnedCubesCount)
-        root.addChild(message)
-        loseEntity = message
-    }
+    // MARK: - Public lifecycle
 
     func startIfNeeded() {
         guard spawnTimer == nil else { return }
@@ -77,11 +62,57 @@ final class CubeGameController {
     }
 
     func toggleSpawner() {
-        if spawnTimer != nil { stopCubeSpawner() }
-        else { startCubeSpawner() }
+        if spawnTimer != nil {
+            stopCubeSpawner()
+        } else {
+            startCubeSpawner()
+        }
     }
 
-    // These two are used by your gestures
+    // MARK: - Score text
+
+    func ensureScoreEntityExists() {
+        guard let root else { return }
+        guard scoreEntity == nil else { return }
+
+        let entity = factory.makeScoreEntity(despawnedCubesCount: despawnedCubesCount)
+        root.addChild(entity)
+        scoreEntity = entity
+    }
+
+    private func refreshScoreEntity() {
+        scoreEntity?.removeFromParent()
+        scoreEntity = nil
+        ensureScoreEntityExists()
+    }
+
+    // MARK: - Restart game (merged from main)
+
+    func restartGame() {
+        print("🔁 Restarting game")
+
+        stopCubeSpawner()
+        cancelAllDespawnTimers()
+
+        for cube in cubes {
+            cube.removeFromParent()
+        }
+        cubes.removeAll()
+
+        scoreEntity?.removeFromParent()
+        scoreEntity = nil
+
+        despawnedCubesCount = 0
+        showLostMessage = false
+
+        // recreate score text immediately (same behavior as before)
+        ensureScoreEntityExists()
+
+        startCubeSpawner()
+    }
+
+    // MARK: - Gestures hooks
+
     func onManipulationBegan(_ cube: Entity) {
         cancelDespawn(for: cube)
     }
@@ -90,20 +121,16 @@ final class CubeGameController {
         scheduleDespawn(for: cube, after: cubeLifetime)
     }
 
-    // MARK: - Spawner (same behavior)
+    // MARK: - Spawner
 
     private func startCubeSpawner() {
         guard spawnTimer == nil else { return }
 
-        Task { @MainActor in
-            self.spawnOneCube() // instant first cube
-        }
+        spawnOneCube() // instant first cube
 
         spawnTimer = Timer.scheduledTimer(withTimeInterval: spawnInterval, repeats: true) { [weak self] _ in
             guard let self else { return }
-            Task { @MainActor in
-                self.spawnOneCube()
-            }
+            self.spawnOneCube()
         }
 
         print("Spawner started.")
@@ -127,7 +154,7 @@ final class CubeGameController {
         print("Spawned cube at \(cube.position)")
     }
 
-    // MARK: - Despawn timers (same logic as your current code)
+    // MARK: - Despawn management
 
     private func scheduleDespawn(for cube: Entity, after seconds: TimeInterval) {
         cancelDespawn(for: cube)
@@ -138,30 +165,20 @@ final class CubeGameController {
             guard let self else { return }
 
             DispatchQueue.main.async {
-                // Remove cube
                 cube.removeFromParent()
                 self.cubes.removeAll { $0 === cube }
                 self.despawnTimers[id] = nil
 
-                // Increment counter
                 self.despawnedCubesCount += 1
                 print("Cube despawned. Count: \(self.despawnedCubesCount)")
 
-                // Replace score text
-                if let lose = self.loseEntity {
-                    lose.removeFromParent()
-                    self.loseEntity = nil
-                }
-                if let root = self.root {
-                    let messageEntity = self.factory.makeScoreEntity(despawnedCubesCount: self.despawnedCubesCount)
-                    root.addChild(messageEntity)
-                    self.loseEntity = messageEntity
-                }
+                self.refreshScoreEntity()
 
-                // Stop spawner at >= 3 (unchanged)
-                if self.despawnedCubesCount >= self.stopAtDespawnCount {
+                // ✅ merged main behavior: lose at >= 5, stop spawner, show window
+                if self.despawnedCubesCount >= self.loseThreshold {
                     self.showLostMessage = true
                     self.stopCubeSpawner()
+                    self.appModel?.shouldShowWindow = true
                 }
             }
         }
@@ -182,4 +199,3 @@ final class CubeGameController {
         despawnTimers.removeAll()
     }
 }
-

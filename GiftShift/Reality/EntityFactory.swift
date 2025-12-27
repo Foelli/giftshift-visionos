@@ -6,7 +6,7 @@ import SwiftUI
 
 struct EntityFactory {
 
-    // MARK: - Cube
+    // MARK: - Cube Factory
 
     func makePhysicalCube(above table: Entity) -> ModelEntity {
         let size: Float = 0.4
@@ -80,12 +80,10 @@ struct EntityFactory {
         return button
     }
 
-    // MARK: - Score Text
+    // MARK: - Game Score
 
     func makeScoreEntity(despawnedCubesCount: Int) -> ModelEntity {
-        let message = despawnedCubesCount >= 5
-            ? "YOU LOST"
-            : "Count: \(despawnedCubesCount)"
+        let message = despawnedCubesCount >= 5 ? "YOU LOST" : "Count: \(despawnedCubesCount)"
 
         let mesh = MeshResource.generateText(
             message,
@@ -98,6 +96,12 @@ struct EntityFactory {
         entity.position = [despawnedCubesCount >= 5 ? -1.5 : -1.2, 2.0, -2.0]
 
         return entity
+    }
+
+    // MARK: - Colors
+
+    func randomCubeColor() -> UIColor {
+        [.red, .orange, .green].randomElement()!
     }
 
     // MARK: - Ground
@@ -116,24 +120,18 @@ struct EntityFactory {
             )
         )
 
-        let physicsMat = PhysicsMaterialResource.generate(
+        let groundPhysicsMat = PhysicsMaterialResource.generate(
             friction: 4.0,
             restitution: 0.0
         )
 
         ground.components.set(
             PhysicsBodyComponent(
-                material: physicsMat,
+                material: groundPhysicsMat,
                 mode: .static
             )
         )
 
         return ground
-    }
-
-    // MARK: - Utilities
-
-    func randomCubeColor() -> UIColor {
-        [.red, .orange, .green].randomElement()!
     }
 }

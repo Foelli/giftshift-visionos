@@ -26,6 +26,8 @@ struct ContentView: View {
 
                 Button("Start Game") {
                     Task {
+                        appModel.shouldShowWindow = true
+                        appModel.startNewGameToken = UUID()
                         await openImmersiveSpace(id: appModel.immersiveSpaceID)
                     }
                 }

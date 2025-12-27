@@ -17,11 +17,10 @@ struct ImmersiveView: View {
     @State private var table: Entity? = nil
     @State private var stopButton: ModelEntity? = nil
 
-    // ✅ NEW: Controller + Factory (keeps same behavior)
     @State private var game = CubeGameController()
     private let factory = EntityFactory()
 
-    // MARK: - Gesture state (prevents snapping) — unchanged
+    // MARK: - Gesture state (prevents snapping)
     @State private var dragStartPosition: SIMD3<Float>? = nil
     @State private var dragStartTouchWorld: SIMD3<Float>? = nil
     @State private var rotateStartOrientation: simd_quatf? = nil
@@ -44,8 +43,12 @@ struct ImmersiveView: View {
                     table = immersiveContentEntity.findEntity(named: "Table")
                 }
 
-
-                game.attach(root: root, table: table)
+                // Attach refs only when needed (prevents re-attaching every frame)
+                if game.root == nil {
+                    game.attach(root: root, table: table, appModel: appModel)
+                } else if game.table !== table {
+                    game.attach(root: root, table: table, appModel: appModel)
+                }
 
                 if ground == nil {
                     let g = factory.makeGround()
@@ -59,11 +62,10 @@ struct ImmersiveView: View {
                     stopButton = button
                 }
 
-
                 game.ensureScoreEntityExists()
 
             } update: { _ in
-
+                // Physics runs automatically
             }
             .gesture(dragGesture.simultaneously(with: rotateGesture))
             .gesture(
@@ -82,6 +84,10 @@ struct ImmersiveView: View {
         .onDisappear {
             game.stopAll()
         }
+        // ✅ merged from main: restart game when token changes
+        .onChange(of: appModel.startNewGameToken) { _, _ in
+            game.restartGame()
+        }
     }
 
     // MARK: - Gestures
@@ -94,10 +100,8 @@ struct ImmersiveView: View {
                 guard entity.name == "SpawnedCube" else { return }
                 guard let parent = entity.parent else { return }
 
-                // cancel despawn while manipulating (same as before)
                 game.onManipulationBegan(entity)
 
-                // Freeze physics while manipulating
                 if var body = entity.components[PhysicsBodyComponent.self], body.mode != .kinematic {
                     body.mode = .kinematic
                     entity.components.set(body)
@@ -127,7 +131,6 @@ struct ImmersiveView: View {
                     entity.components.set(body)
                 }
 
-                // reset despawn timer when released (same as before)
                 game.onManipulationEnded(entity)
             }
     }
@@ -139,10 +142,8 @@ struct ImmersiveView: View {
                 let entity = value.entity
                 guard entity.name == "SpawnedCube" else { return }
 
-                // cancel despawn while manipulating (same as before)
                 game.onManipulationBegan(entity)
 
-                // Freeze physics while manipulating
                 if var body = entity.components[PhysicsBodyComponent.self], body.mode != .kinematic {
                     body.mode = .kinematic
                     entity.components.set(body)
@@ -167,7 +168,6 @@ struct ImmersiveView: View {
                     entity.components.set(body)
                 }
 
-                // reset despawn timer when released (same as before)
                 game.onManipulationEnded(entity)
             }
     }
