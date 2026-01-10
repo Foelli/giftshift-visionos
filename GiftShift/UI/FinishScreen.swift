@@ -20,14 +20,11 @@ struct ContentView: View {
                     .foregroundStyle(.white)
                     .shadow(radius: 10)
 
-                Text("Sort the falling gifts fast!")
+                Text("You have finished the game!")
                     .font(.title2)
                     .foregroundStyle(.white.opacity(0.8))
-                
-                let buttonText
 
-
-                Button("Start Game") {
+                Button("Restart Game") {
                     Task {
                         appModel.shouldShowWindow = true
                         appModel.startNewGameToken = UUID()

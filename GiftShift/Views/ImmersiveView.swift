@@ -105,6 +105,7 @@ struct ImmersiveView: View {
             )
         }
         .task {
+            appModel.gameState = .playing
             game.startIfNeeded()
         }
         .onDisappear {
@@ -112,6 +113,7 @@ struct ImmersiveView: View {
         }
         // Restart when main token changes
         .onChange(of: appModel.startNewGameToken) { _, _ in
+            appModel.gameState = .playing
             game.restartGame()
         }
     }
