@@ -55,7 +55,7 @@ struct ContentView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
 
                 } else if (appModel.gameState == .afterRound) {
-                Text("end end end")
+                    Text("Game Over! You reached \(appModel.lastPoints) Points :)")
                     .font(.title2)
                     .foregroundStyle(.white.opacity(0.8))
 
@@ -66,8 +66,8 @@ struct ContentView: View {
                         if appModel.immersiveSpaceState != .open {
                             _ = await openImmersiveSpace(id: appModel.immersiveSpaceID)
                         }
-                        appModel.shouldShowWindow = false
                         appModel.gameState = .playing
+                        appModel.shouldCloseWindow = true
                     }
                 }
                 .padding(.horizontal, 40)

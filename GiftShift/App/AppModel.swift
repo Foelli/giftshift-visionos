@@ -28,4 +28,5 @@ class AppModel {
         case afterRound
     }
     var gameState = GameState.firstStart
+    var lastPoints = 0
 }

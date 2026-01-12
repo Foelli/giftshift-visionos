@@ -114,6 +114,10 @@ struct ImmersiveView: View {
         .onChange(of: appModel.startNewGameToken) { _, _ in
             game.restartGame()
         }
+        // NEW: listen to gameState changes and forward to controller
+        .onChange(of: appModel.gameState) { _, newValue in
+            game.handleGameStateChanged(newValue)
+        }
     }
 
     // MARK: - Gestures
@@ -225,3 +229,4 @@ struct ImmersiveView: View {
     ImmersiveView()
         .environment(AppModel())
 }
+

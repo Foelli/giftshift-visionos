@@ -3,9 +3,9 @@
 //  GiftShift
 //
 
+import Combine
 import Foundation
 import RealityKit
-import Combine
 import SwiftUI
 
 @MainActor
@@ -13,7 +13,6 @@ final class CubeGameController {
 
     // MARK: - Dependencies
     private let factory: EntityFactory
-
 
     // MARK: - Tuning
     private let spawnInterval: TimeInterval = 5.0
@@ -77,7 +76,10 @@ final class CubeGameController {
         didSetupBowlSubscriptions = true
 
         func subscribe(_ trigger: Entity, expects color: CubeColor) {
-            let cancellable = scene.subscribe(to: CollisionEvents.Began.self, on: trigger) { [weak self] event in
+            let cancellable = scene.subscribe(
+                to: CollisionEvents.Began.self,
+                on: trigger
+            ) { [weak self] event in
                 self?.handleBowlCollision(event: event, expected: color)
             }
 
@@ -107,15 +109,34 @@ final class CubeGameController {
         // keep collision subscriptions alive (scene lifecycle)
     }
 
+    // Toggle from in-world StopButton tap
     func toggleSpawner() {
         if spawnTimer != nil {
             appModel!.gameState = .paused
             stopCubeSpawner()
             appModel!.shouldShowWindow = true
         } else {
-            appModel!.shouldCloseWindow = true
-            appModel!.gameState = .playing
-            startCubeSpawner()
+            resumeSpawnerFromUI()
+        }
+    }
+
+    // MARK: - Resume/start branch extracted from toggleSpawner's else
+    private func resumeSpawnerFromUI() {
+        appModel!.shouldCloseWindow = true
+        appModel!.gameState = .playing
+        startCubeSpawner()
+    }
+
+    // MARK: - React to external gameState changes (e.g., Resume button in 2D window)
+    func handleGameStateChanged(_ newState: AppModel.GameState) {
+        switch newState {
+        case .playing:
+            // Only resume if not already spawning
+            if spawnTimer == nil {
+                resumeSpawnerFromUI()
+            }
+        default:
+            break
         }
     }
 
@@ -124,7 +145,10 @@ final class CubeGameController {
         guard let root else { return }
         guard scoreEntity == nil else { return }
 
-        let entity = factory.makeScoreEntity(points: points, despawnedCubesCount: despawnedCubesCount)
+        let entity = factory.makeScoreEntity(
+            points: points,
+            despawnedCubesCount: despawnedCubesCount
+        )
         root.addChild(entity)
         scoreEntity = entity
 
@@ -160,13 +184,14 @@ final class CubeGameController {
     }
 
     func endGame() {
-                    self.showLostMessage = true
+        self.showLostMessage = true
 
-                    self.stopCubeSpawner()
-                    self.cancelAllDespawnTimers()
+        self.stopCubeSpawner()
+        self.cancelAllDespawnTimers()
+        appModel?.lastPoints = points
         appModel?.gameState = .afterRound
 
-                    self.appModel?.shouldShowWindow = true
+        self.appModel?.shouldShowWindow = true
     }
 
     // MARK: - Gesture hooks
@@ -183,9 +208,12 @@ final class CubeGameController {
         guard spawnTimer == nil else { return }
         guard !showLostMessage else { return }
 
-        spawnOneCube() // instant first cube
+        spawnOneCube()  // instant first cube
 
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: spawnInterval, repeats: true) { [weak self] _ in
+        spawnTimer = Timer.scheduledTimer(
+            withTimeInterval: spawnInterval,
+            repeats: true
+        ) { [weak self] _ in
             guard let self else { return }
             guard !self.showLostMessage else { return }
             self.spawnOneCube()
@@ -214,21 +242,32 @@ final class CubeGameController {
     }
 
     // MARK: - Collision scoring
-    private func handleBowlCollision(event: CollisionEvents.Began, expected: CubeColor) {
+    private func handleBowlCollision(
+        event: CollisionEvents.Began,
+        expected: CubeColor
+    ) {
         // Debug: confirm collisions actually fire
-        print("💥 collision between \(event.entityA.name) and \(event.entityB.name) expected \(expected)")
+        print(
+            "💥 collision between \(event.entityA.name) and \(event.entityB.name) expected \(expected)"
+        )
 
         let a = event.entityA
         let b = event.entityB
 
         let cubeEntity: Entity?
-        if a.name == "SpawnedCube" { cubeEntity = a }
-        else if b.name == "SpawnedCube" { cubeEntity = b }
-        else { cubeEntity = nil }
+        if a.name == "SpawnedCube" {
+            cubeEntity = a
+        } else if b.name == "SpawnedCube" {
+            cubeEntity = b
+        } else {
+            cubeEntity = nil
+        }
 
         guard let cube = cubeEntity as? ModelEntity else { return }
 
-        guard let comp = cube.components[CubeColorComponent.self] else { return }
+        guard let comp = cube.components[CubeColorComponent.self] else {
+            return
+        }
         guard comp.color == expected else { return }
 
         points += 1
@@ -242,11 +281,13 @@ final class CubeGameController {
     }
 
     // MARK: - Despawn management
-    private func scheduleDespawn(for cube: Entity, after seconds: TimeInterval) {
+    private func scheduleDespawn(for cube: Entity, after seconds: TimeInterval)
+    {
         cancelDespawn(for: cube)
         let id = ObjectIdentifier(cube)
 
-        let t = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in
+        let t = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false)
+        { [weak self] _ in
             guard let self else { return }
 
             DispatchQueue.main.async {
