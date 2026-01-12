@@ -13,6 +13,8 @@ final class CubeGameController {
     // MARK: - Dependencies
     private let factory: EntityFactory
 
+    @Environment(AppModel.self) var appModel
+
     // MARK: - Tuning
     private let spawnInterval: TimeInterval = 5.0
     private let cubeLifetime: TimeInterval = 5.0
@@ -93,19 +95,26 @@ final class CubeGameController {
     // MARK: - Public lifecycle
     func startIfNeeded() {
         guard spawnTimer == nil else { return }
+        appModel.gameState = .playing
         startCubeSpawner()
     }
 
     func stopAll() {
+        appModel.gameState = .afterRound
         stopCubeSpawner()
         cancelAllDespawnTimers()
+        appModel.shouldShowWindow = true
         // keep collision subscriptions alive (scene lifecycle)
     }
 
     func toggleSpawner() {
         if spawnTimer != nil {
+            appModel.gameState = .paused
             stopCubeSpawner()
+            appModel.shouldShowWindow = true
         } else {
+            appModel.shouldShowWindow = false
+            appModel.gameState = .playing
             startCubeSpawner()
         }
     }
@@ -146,7 +155,17 @@ final class CubeGameController {
         points = 0
 
         ensureScoreEntityExists()
+        appModel.gameState = .playing
         startCubeSpawner()
+    }
+
+    func endGame() {
+                    self.showLostMessage = true
+
+                    self.stopCubeSpawner()
+                    self.cancelAllDespawnTimers()
+
+                    self.appModel?.shouldShowWindow = true
     }
 
     // MARK: - Gesture hooks
@@ -242,12 +261,7 @@ final class CubeGameController {
                 self.refreshScoreEntity()
 
                 if self.despawnedCubesCount >= self.loseThreshold {
-                    self.showLostMessage = true
-
-                    self.stopCubeSpawner()
-                    self.cancelAllDespawnTimers()
-
-                    self.appModel?.shouldShowWindow = true
+                    endGame()
                 }
             }
         }

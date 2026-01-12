@@ -20,12 +20,10 @@ struct ContentView: View {
                     .foregroundStyle(.white)
                     .shadow(radius: 10)
 
+                if (appModel.gameState == .firstStart) {
                 Text("Sort the falling gifts fast!")
                     .font(.title2)
                     .foregroundStyle(.white.opacity(0.8))
-                
-                let buttonText
-
 
                 Button("Start Game") {
                     Task {
@@ -38,6 +36,42 @@ struct ContentView: View {
                 .padding(.vertical, 20)
                 .glassBackgroundEffect()
                 .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                } else if (appModel.gameState == .paused) {
+                Text("The game is paused")
+                    .font(.title2)
+                    .foregroundStyle(.white.opacity(0.8))
+
+                Button("Resume") {
+                    Task {
+                        appModel.shouldShowWindow = true
+                        appModel.startNewGameToken = UUID()
+                        await openImmersiveSpace(id: appModel.immersiveSpaceID)
+                    }
+                }
+                .padding(.horizontal, 40)
+                .padding(.vertical, 20)
+                .glassBackgroundEffect()
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                } else if (appModel.gameState == .afterRound) {
+                Text("end end end")
+                    .font(.title2)
+                    .foregroundStyle(.white.opacity(0.8))
+
+                Button("Restart") {
+                    Task {
+                        appModel.shouldShowWindow = true
+                        appModel.startNewGameToken = UUID()
+                        await openImmersiveSpace(id: appModel.immersiveSpaceID)
+                    }
+                }
+                .padding(.horizontal, 40)
+                .padding(.vertical, 20)
+                .glassBackgroundEffect()
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                    }
 
             }
         }
