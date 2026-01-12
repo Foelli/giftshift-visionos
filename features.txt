@@ -1,4 +1,4 @@
-Functionalities:
+Features:
 
 - Full Space (for actual game environment)
 - SwiftUI visionOS features: Ornaments (for start-, pause- and game over screen)

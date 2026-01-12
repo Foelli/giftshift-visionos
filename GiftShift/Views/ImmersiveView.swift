@@ -16,8 +16,7 @@ struct ImmersiveView: View {
     @State private var ground: ModelEntity? = nil
     @State private var table: Entity? = nil
     @State private var stopButton: ModelEntity? = nil
-    @State private var pauseButton: ModelEntity? = nil
-
+    
     @State private var game = CubeGameController()
     private let factory = EntityFactory()
 
@@ -81,12 +80,7 @@ struct ImmersiveView: View {
                     root.addChild(button)
                     stopButton = button
                 }
-                
-                if pauseButton == nil {
-                    let button = factory.makePauseButton()
-                    root.addChild(button)
-                    pauseButton = button
-                }
+               
 
                 game.ensureScoreEntityExists()
 

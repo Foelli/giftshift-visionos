@@ -112,25 +112,6 @@ struct EntityFactory {
 
         return button
     }
-    
-    // MARK: - Pause Button
-    @State private var pauseButton: ModelEntity? = nil
-
-    func makePauseButton() -> ModelEntity {
-        let mesh = MeshResource.generateBox(size: 0.15)
-        let material = SimpleMaterial(color: .green, isMetallic: true)
-        let button = ModelEntity(mesh: mesh, materials: [material])
-        
-        button.name = "PauseButton"
-        button.position = [0, 2.5, -1.0]  // adjust in front of user
-        
-        button.components.set(
-            CollisionComponent(shapes: [.generateBox(size: [0.2, 0.08, 0.05])])
-        )
-        button.components.set(InputTargetComponent())
-        
-        return button
-    }
 
 
     // MARK: - Game Score
