@@ -23,6 +23,20 @@ struct GiftShiftApp: App {
             } else {
                 ContentView()
                     .environment(appModel)
+                    // Mirror the window control observers here so they are active
+                    // whenever this window scene is alive.
+                    .onChange(of: appModel.shouldShowWindow) { _, newValue in
+                        if newValue {
+                            openWindow(id: "Window")
+                            appModel.shouldShowWindow = false
+                        }
+                    }
+                    .onChange(of: appModel.shouldCloseWindow) { _, newValue in
+                        if newValue {
+                            dismissWindow(id: "Window")
+                            appModel.shouldCloseWindow = false
+                        }
+                    }
             }
         }
         
@@ -38,10 +52,17 @@ struct GiftShiftApp: App {
                     appModel.immersiveSpaceState = .closed
                     avPlayerViewModel.reset()
                 }
+                // Keep these if you also want ImmersiveSpace to respond while mounted.
                 .onChange(of: appModel.shouldShowWindow) { _, newValue in
                     if newValue {
                         openWindow(id: "Window")
                         appModel.shouldShowWindow = false
+                    }
+                }
+                .onChange(of: appModel.shouldCloseWindow) { _, newValue in
+                    if newValue {
+                        dismissWindow(id: "Window")
+                        appModel.shouldCloseWindow = false
                     }
                 }
         }

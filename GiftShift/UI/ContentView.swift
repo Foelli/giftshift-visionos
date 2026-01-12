@@ -44,9 +44,9 @@ struct ContentView: View {
 
                 Button("Resume") {
                     Task {
-                        appModel.shouldShowWindow = true
-                        appModel.startNewGameToken = UUID()
-                        await openImmersiveSpace(id: appModel.immersiveSpaceID)
+                        // Close the window (keep immersive space) and resume playing
+                        appModel.shouldShowWindow = false
+                        appModel.gameState = .playing
                     }
                 }
                 .padding(.horizontal, 40)
@@ -61,9 +61,13 @@ struct ContentView: View {
 
                 Button("Restart") {
                     Task {
-                        appModel.shouldShowWindow = true
+                        // Start a new game round and ensure immersive space is open
                         appModel.startNewGameToken = UUID()
-                        await openImmersiveSpace(id: appModel.immersiveSpaceID)
+                        if appModel.immersiveSpaceState != .open {
+                            _ = await openImmersiveSpace(id: appModel.immersiveSpaceID)
+                        }
+                        appModel.shouldShowWindow = false
+                        appModel.gameState = .playing
                     }
                 }
                 .padding(.horizontal, 40)

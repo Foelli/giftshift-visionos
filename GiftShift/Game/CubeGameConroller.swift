@@ -6,6 +6,7 @@
 import Foundation
 import RealityKit
 import Combine
+import SwiftUI
 
 @MainActor
 final class CubeGameController {
@@ -13,7 +14,6 @@ final class CubeGameController {
     // MARK: - Dependencies
     private let factory: EntityFactory
 
-    @Environment(AppModel.self) var appModel
 
     // MARK: - Tuning
     private let spawnInterval: TimeInterval = 5.0
@@ -95,26 +95,26 @@ final class CubeGameController {
     // MARK: - Public lifecycle
     func startIfNeeded() {
         guard spawnTimer == nil else { return }
-        appModel.gameState = .playing
+        appModel?.gameState = .playing
         startCubeSpawner()
     }
 
     func stopAll() {
-        appModel.gameState = .afterRound
+        appModel!.gameState = .afterRound
         stopCubeSpawner()
         cancelAllDespawnTimers()
-        appModel.shouldShowWindow = true
+        appModel!.shouldShowWindow = true
         // keep collision subscriptions alive (scene lifecycle)
     }
 
     func toggleSpawner() {
         if spawnTimer != nil {
-            appModel.gameState = .paused
+            appModel!.gameState = .paused
             stopCubeSpawner()
-            appModel.shouldShowWindow = true
+            appModel!.shouldShowWindow = true
         } else {
-            appModel.shouldShowWindow = false
-            appModel.gameState = .playing
+            appModel!.shouldCloseWindow = true
+            appModel!.gameState = .playing
             startCubeSpawner()
         }
     }
@@ -155,7 +155,7 @@ final class CubeGameController {
         points = 0
 
         ensureScoreEntityExists()
-        appModel.gameState = .playing
+        appModel!.gameState = .playing
         startCubeSpawner()
     }
 
@@ -164,6 +164,7 @@ final class CubeGameController {
 
                     self.stopCubeSpawner()
                     self.cancelAllDespawnTimers()
+        appModel?.gameState = .afterRound
 
                     self.appModel?.shouldShowWindow = true
     }
@@ -261,7 +262,7 @@ final class CubeGameController {
                 self.refreshScoreEntity()
 
                 if self.despawnedCubesCount >= self.loseThreshold {
-                    endGame()
+                    self.endGame()
                 }
             }
         }

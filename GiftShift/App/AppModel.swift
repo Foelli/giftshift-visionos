@@ -19,6 +19,7 @@ class AppModel {
     }
     var immersiveSpaceState = ImmersiveSpaceState.closed
     var shouldShowWindow = false
+    var shouldCloseWindow = false
     var startNewGameToken = UUID()
     enum GameState {
         case firstStart
