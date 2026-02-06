@@ -1,6 +1,6 @@
 GiftShift (visionOS App)
 
-1. Descition of the project
+1. Goal of the project
 GiftShift is an immersive visionOS game built with SwiftUI, RealityKit, and Reality Composer Pro.
 Players interact with floating colored cubes and score points by placing each cube into its corresponding colored bowl.
 
